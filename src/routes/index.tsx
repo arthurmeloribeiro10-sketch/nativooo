@@ -163,6 +163,26 @@ function Home() {
           <ArrowRight className="size-4 text-muted-foreground" />
         </Link>
         <Link
+          to="/dieta"
+          className="surface flex items-center justify-between p-5 transition-transform hover:-translate-y-0.5"
+        >
+          <span className="flex items-center gap-3">
+            <Salad className="size-5 text-leaf" strokeWidth={1.6} />
+            <span className="text-sm font-medium">Ver sua dieta do dia</span>
+          </span>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </Link>
+        <Link
+          to="/corpo"
+          className="surface flex items-center justify-between p-5 transition-transform hover:-translate-y-0.5"
+        >
+          <span className="flex items-center gap-3">
+            <Sun className="size-5 text-gold" strokeWidth={1.6} />
+            <span className="text-sm font-medium">Sol, passos e sono</span>
+          </span>
+          <ArrowRight className="size-4 text-muted-foreground" />
+        </Link>
+        <Link
           to="/protocolo"
           className="surface flex items-center justify-between p-5 transition-transform hover:-translate-y-0.5"
         >
