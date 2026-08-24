@@ -144,10 +144,6 @@
   }
 }
 
-@utility font-editorial {
-  font-family: var(--font-editorial);
-}
-
 @utility surface {
   background-color: var(--card);
   border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
