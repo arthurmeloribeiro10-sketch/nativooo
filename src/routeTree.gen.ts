@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ComunidadeRouteImport } from './routes/comunidade'
+import { Route as CorpoRouteImport } from './routes/corpo'
 import { Route as DietaRouteImport } from './routes/dieta'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as ProtocoloRouteImport } from './routes/protocolo'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const ComunidadeRoute = ComunidadeRouteImport.update({
   id: '/comunidade',
   path: '/comunidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CorpoRoute = CorpoRouteImport.update({
+  id: '/corpo',
+  path: '/corpo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DietaRoute = DietaRouteImport.update({
@@ -50,6 +56,7 @@ const RegistroRoute = RegistroRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/comunidade': typeof ComunidadeRoute
+  '/corpo': typeof CorpoRoute
   '/dieta': typeof DietaRoute
   '/perfil': typeof PerfilRoute
   '/protocolo': typeof ProtocoloRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/comunidade': typeof ComunidadeRoute
+  '/corpo': typeof CorpoRoute
   '/dieta': typeof DietaRoute
   '/perfil': typeof PerfilRoute
   '/protocolo': typeof ProtocoloRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/comunidade': typeof ComunidadeRoute
+  '/corpo': typeof CorpoRoute
   '/dieta': typeof DietaRoute
   '/perfil': typeof PerfilRoute
   '/protocolo': typeof ProtocoloRoute
@@ -75,13 +84,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/comunidade' | '/dieta' | '/perfil' | '/protocolo' | '/registro'
+    | '/'
+    | '/comunidade'
+    | '/corpo'
+    | '/dieta'
+    | '/perfil'
+    | '/protocolo'
+    | '/registro'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/comunidade' | '/dieta' | '/perfil' | '/protocolo' | '/registro'
+  to:
+    | '/'
+    | '/comunidade'
+    | '/corpo'
+    | '/dieta'
+    | '/perfil'
+    | '/protocolo'
+    | '/registro'
   id:
     | '__root__'
     | '/'
     | '/comunidade'
+    | '/corpo'
     | '/dieta'
     | '/perfil'
     | '/protocolo'
@@ -91,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ComunidadeRoute: typeof ComunidadeRoute
+  CorpoRoute: typeof CorpoRoute
   DietaRoute: typeof DietaRoute
   PerfilRoute: typeof PerfilRoute
   ProtocoloRoute: typeof ProtocoloRoute
@@ -111,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/comunidade'
       fullPath: '/comunidade'
       preLoaderRoute: typeof ComunidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/corpo': {
+      id: '/corpo'
+      path: '/corpo'
+      fullPath: '/corpo'
+      preLoaderRoute: typeof CorpoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dieta': {
@@ -147,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ComunidadeRoute: ComunidadeRoute,
+  CorpoRoute: CorpoRoute,
   DietaRoute: DietaRoute,
   PerfilRoute: PerfilRoute,
   ProtocoloRoute: ProtocoloRoute,
