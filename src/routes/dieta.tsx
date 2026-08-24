@@ -26,7 +26,7 @@ export const Route = createFileRoute("/dieta")({
 
 function DietaPage() {
   const [meals, setMeals] = useState(dietPlan);
-  const [template, setTemplate] = useState(dietTemplates[0].id);
+  const [template, setTemplate] = useState(dietTemplates[0]?.id ?? "");
   const [novaRefeicao, setNovaRefeicao] = useState("");
 
   const feitas = meals.filter((m) => m.done).length;
