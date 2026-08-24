@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Home, Camera, Route as RouteIcon, Users, User } from "lucide-react";
+import { Home, Camera, Salad, Sun, Users, User } from "lucide-react";
 import type { ReactNode } from "react";
 
 const nav = [
   { to: "/", label: "Home", icon: Home },
   { to: "/registro", label: "Registrar", icon: Camera },
-  { to: "/protocolo", label: "Protocolo", icon: RouteIcon },
+  { to: "/dieta", label: "Dieta", icon: Salad },
+  { to: "/corpo", label: "Corpo", icon: Sun },
   { to: "/comunidade", label: "Comunidade", icon: Users },
   { to: "/perfil", label: "Perfil", icon: User },
 ];

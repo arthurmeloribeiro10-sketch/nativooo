@@ -164,3 +164,128 @@ export const encouragements = [
   "Sua evolução acontece na consistência.",
   "Menos controle. Mais consciência.",
 ];
+
+/* ---------- Dieta ---------- */
+
+export type MealSlot = {
+  id: string;
+  time: string;
+  name: string;
+  items: string[];
+  kcal: number;
+  done: boolean;
+};
+
+export const dietPlan: MealSlot[] = [
+  {
+    id: "d1",
+    time: "07h30",
+    name: "Café da manhã",
+    items: ["3 ovos caipiras", "Meio abacate", "Café coado sem açúcar"],
+    kcal: 480,
+    done: true,
+  },
+  {
+    id: "d2",
+    time: "12h30",
+    name: "Almoço",
+    items: ["Carne de pasto", "Arroz e feijão", "Salada com azeite"],
+    kcal: 720,
+    done: true,
+  },
+  {
+    id: "d3",
+    time: "16h00",
+    name: "Lanche",
+    items: ["Fruta da estação", "Castanhas"],
+    kcal: 260,
+    done: false,
+  },
+  {
+    id: "d4",
+    time: "20h00",
+    name: "Jantar",
+    items: ["Peixe assado", "Legumes na manteiga", "Batata-doce"],
+    kcal: 610,
+    done: false,
+  },
+];
+
+export const dietTemplates = [
+  {
+    id: "t1",
+    name: "Comida real clássica",
+    detail: "Base do João Braga: proteína, vegetais e carboidrato natural em 4 refeições.",
+    meals: 4,
+  },
+  {
+    id: "t2",
+    name: "Janela de 8 horas",
+    detail: "Jejum leve das 20h às 12h, com 3 refeições densas dentro da janela.",
+    meals: 3,
+  },
+  {
+    id: "t3",
+    name: "Treino pela manhã",
+    detail: "Mais carboidrato natural no pós-treino e jantar mais leve.",
+    meals: 5,
+  },
+];
+
+/* ---------- Sol ---------- */
+
+export type SunHour = { hour: string; uv: number };
+
+export const sunToday = {
+  condition: "Céu limpo com nuvens altas",
+  uvPeak: 9,
+  sunrise: "06h12",
+  sunset: "17h48",
+  bestWindow: "07h00 – 09h30",
+  avoidWindow: "11h00 – 15h00",
+  minutesRecommended: 20,
+  verdict: "bom" as "bom" | "moderado" | "evitar",
+  message:
+    "Dia bom para pegar sol. Aproveite a manhã: 20 minutos de pele exposta antes das 9h30, sem óculos escuros.",
+};
+
+export const sunHours: SunHour[] = [
+  { hour: "6h", uv: 0 },
+  { hour: "8h", uv: 3 },
+  { hour: "10h", uv: 6 },
+  { hour: "12h", uv: 9 },
+  { hour: "14h", uv: 7 },
+  { hour: "16h", uv: 3 },
+  { hour: "18h", uv: 0 },
+];
+
+/* ---------- Passos ---------- */
+
+export const stepsToday = { steps: 7420, goal: 10000, km: 5.4, minutesActive: 62 };
+
+export const stepsWeek = [
+  { day: "Seg", steps: 6100 },
+  { day: "Ter", steps: 9400 },
+  { day: "Qua", steps: 5200 },
+  { day: "Qui", steps: 11200 },
+  { day: "Sex", steps: 8300 },
+  { day: "Sáb", steps: 12800 },
+  { day: "Dom", steps: 7420 },
+];
+
+/* ---------- Sono ---------- */
+
+export type SleepNight = { day: string; hours: number; quality: number };
+
+export const sleepWeek: SleepNight[] = [
+  { day: "Seg", hours: 6.2, quality: 62 },
+  { day: "Ter", hours: 7.1, quality: 74 },
+  { day: "Qua", hours: 5.8, quality: 51 },
+  { day: "Qui", hours: 7.6, quality: 81 },
+  { day: "Sex", hours: 6.9, quality: 70 },
+  { day: "Sáb", hours: 8.1, quality: 88 },
+  { day: "Dom", hours: 7.3, quality: 76 },
+];
+
+export const sleepAverage =
+  Math.round((sleepWeek.reduce((s, n) => s + n.hours, 0) / sleepWeek.length) * 10) / 10;
