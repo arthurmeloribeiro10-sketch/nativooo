@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowRight, Camera, Flame, Sun } from "lucide-react";
+import { ArrowRight, Camera, Flame, Salad, Sun } from "lucide-react";
 
 import heroImage from "@/assets/nativo-hero.jpg";
 import { AppShell } from "@/components/nativo/AppShell";
