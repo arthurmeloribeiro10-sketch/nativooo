@@ -98,7 +98,7 @@ function RegistroPage() {
                 onSuccess: () => {
                   setUltimo(value);
                   setTexto("");
-                  toast.success("Refeição registrada.");
+                  setConquista(value);
                 },
               },
             );
