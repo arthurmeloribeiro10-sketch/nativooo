@@ -331,6 +331,12 @@ function DietaPage() {
           "Comida real na maior parte do tempo já muda o seu dia."
         </p>
       </section>
+      <AchievementBurst
+        open={conquista}
+        title="Dieta da selva pronta!"
+        subtitle="Seu plano de comida real já está nas refeições de hoje."
+        onDone={() => setConquista(false)}
+      />
     </AppShell>
   );
 }
