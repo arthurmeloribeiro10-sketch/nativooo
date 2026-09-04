@@ -14,7 +14,224 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      community_posts: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meals: {
+        Row: {
+          created_at: string
+          day: string
+          done: boolean
+          id: string
+          items: string[]
+          kcal: number
+          name: string
+          note: string | null
+          time_label: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day?: string
+          done?: boolean
+          id?: string
+          items?: string[]
+          kcal?: number
+          name: string
+          note?: string | null
+          time_label?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          done?: boolean
+          id?: string
+          items?: string[]
+          kcal?: number
+          name?: string
+          note?: string | null
+          time_label?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      missions: {
+        Row: {
+          created_at: string
+          day: string
+          detail: string
+          done: boolean
+          id: string
+          pillar: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day?: string
+          detail?: string
+          done?: boolean
+          id?: string
+          pillar?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          detail?: string
+          done?: boolean
+          id?: string
+          pillar?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      post_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+          step_goal: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string
+          id: string
+          step_goal?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+          step_goal?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      protocol_progress: {
+        Row: {
+          completed_at: string
+          day_number: number
+          id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          day_number: number
+          id?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          day_number?: number
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sleep_logs: {
+        Row: {
+          created_at: string
+          day: string
+          hours: number
+          id: string
+          quality: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day?: string
+          hours: number
+          id?: string
+          quality?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          hours?: number
+          id?: string
+          quality?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      step_logs: {
+        Row: {
+          created_at: string
+          day: string
+          id: string
+          steps: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day?: string
+          id?: string
+          steps?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          id?: string
+          steps?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
