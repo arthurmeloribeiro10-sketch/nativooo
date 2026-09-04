@@ -237,7 +237,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      community_ranking: {
+        Args: never
+        Returns: {
+          display_name: string
+          missions_done: number
+          protocol_days: number
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
