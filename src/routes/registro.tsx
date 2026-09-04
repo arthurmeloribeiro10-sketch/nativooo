@@ -4,6 +4,7 @@ import { Check, PenLine } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
+import { AchievementBurst } from "@/components/nativo/AchievementBurst";
 import { useAuth } from "@/lib/auth-context";
 import {
   useAddMission,
