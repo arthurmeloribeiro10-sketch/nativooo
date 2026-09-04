@@ -179,6 +179,12 @@ function RegistroPage() {
           ))}
         </ul>
       </section>
+      <AchievementBurst
+        open={!!conquista}
+        title="Refeição registrada!"
+        subtitle={conquista ? `"${conquista}" entrou no seu dia e conta no seu Nativo Score.` : ""}
+        onDone={() => setConquista(null)}
+      />
     </AppShell>
   );
 }
