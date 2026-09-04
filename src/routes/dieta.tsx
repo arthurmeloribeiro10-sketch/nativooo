@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Check, Plus, Trash2, UtensilsCrossed } from "lucide-react";
+import { Check, Leaf, Loader2, Plus, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
+import { AchievementBurst } from "@/components/nativo/AchievementBurst";
 import { useAuth } from "@/lib/auth-context";
+import { generateJungleDiet } from "@/lib/diet-ai.functions";
 import { useMealMutations, useMeals } from "@/lib/nativo-queries";
 
 export const Route = createFileRoute("/dieta")({
@@ -99,6 +102,40 @@ function DietaPage() {
   const { toggle, add, remove, replaceWithTemplate } = useMealMutations(userId);
   const [novaRefeicao, setNovaRefeicao] = useState("");
 
+  const montarDieta = useServerFn(generateJungleDiet);
+  const [peso, setPeso] = useState("");
+  const [altura, setAltura] = useState("");
+  const [objetivo, setObjetivo] = useState("");
+  const [gerando, setGerando] = useState(false);
+  const [resumoIa, setResumoIa] = useState<string | null>(null);
+  const [conquista, setConquista] = useState(false);
+
+  async function gerarDietaDaSelva() {
+    const weightKg = Number(peso.replace(",", "."));
+    const heightCm = Number(altura.replace(",", "."));
+    if (!weightKg || !heightCm) {
+      toast.error("Preencha seu peso e sua altura para a IA montar o plano.");
+      return;
+    }
+    setGerando(true);
+    try {
+      const plano = await montarDieta({
+        data: {
+          weightKg,
+          heightCm,
+          ...(objetivo.trim() ? { goal: objetivo.trim() } : {}),
+        },
+      });
+      await replaceWithTemplate.mutateAsync(plano.meals);
+      setResumoIa(plano.summary);
+      setConquista(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não consegui montar a dieta agora.");
+    } finally {
+      setGerando(false);
+    }
+  }
+
   const list = meals.data ?? [];
   const feitas = list.filter((m) => m.done).length;
   const kcal = list.filter((m) => m.done).reduce((s, m) => s + m.kcal, 0);
@@ -125,6 +162,68 @@ function DietaPage() {
             style={{ width: `${list.length ? (feitas / list.length) * 100 : 0}%` }}
           />
         </div>
+      </section>
+
+      <section className="surface mt-6 p-5">
+        <h2 className="flex items-center gap-2 text-lg">
+          <Sparkles className="size-5 text-gold" strokeWidth={1.6} />
+          Dieta da selva com IA
+        </h2>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          Diga seu peso e sua altura. A IA monta um dia inteiro de comida real, com horários, e já
+          coloca tudo nas suas refeições de hoje.
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <label className="text-xs text-muted-foreground">
+            Peso (kg)
+            <input
+              inputMode="decimal"
+              value={peso}
+              onChange={(e) => setPeso(e.target.value)}
+              placeholder="78"
+              className="mt-1 w-full rounded-xl border border-input bg-background/70 px-4 py-3 text-sm text-foreground outline-none focus:border-leaf"
+            />
+          </label>
+          <label className="text-xs text-muted-foreground">
+            Altura (cm)
+            <input
+              inputMode="decimal"
+              value={altura}
+              onChange={(e) => setAltura(e.target.value)}
+              placeholder="180"
+              className="mt-1 w-full rounded-xl border border-input bg-background/70 px-4 py-3 text-sm text-foreground outline-none focus:border-leaf"
+            />
+          </label>
+        </div>
+        <input
+          value={objetivo}
+          onChange={(e) => setObjetivo(e.target.value)}
+          placeholder="Objetivo (opcional): mais energia, emagrecer, ganhar massa"
+          className="mt-2 w-full rounded-xl border border-input bg-background/70 px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-leaf"
+        />
+        <button
+          type="button"
+          disabled={gerando}
+          onClick={() => void gerarDietaDaSelva()}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+        >
+          {gerando ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Montando sua dieta…
+            </>
+          ) : (
+            <>
+              <Leaf className="size-4" strokeWidth={1.8} />
+              Montar dieta da selva
+            </>
+          )}
+        </button>
+        {resumoIa ? (
+          <p className="rise mt-4 rounded-2xl border border-leaf/40 bg-leaf/10 p-4 text-xs leading-relaxed text-foreground">
+            {resumoIa}
+          </p>
+        ) : null}
       </section>
 
       <section className="surface mt-6 p-5">
@@ -232,6 +331,12 @@ function DietaPage() {
           "Comida real na maior parte do tempo já muda o seu dia."
         </p>
       </section>
+      <AchievementBurst
+        open={conquista}
+        title="Dieta da selva pronta!"
+        subtitle="Seu plano de comida real já está nas refeições de hoje."
+        onDone={() => setConquista(false)}
+      />
     </AppShell>
   );
 }

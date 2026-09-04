@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Check, PenLine } from "lucide-react";
-import { toast } from "sonner";
+
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
+import { AchievementBurst } from "@/components/nativo/AchievementBurst";
 import { useAuth } from "@/lib/auth-context";
 import {
   useAddMission,
@@ -57,6 +58,7 @@ function RegistroPage() {
 
   const [texto, setTexto] = useState("");
   const [ultimo, setUltimo] = useState<string | null>(null);
+  const [conquista, setConquista] = useState<string | null>(null);
 
   const missionList = missions.data ?? [];
   const registradasHoje = (meals.data ?? []).filter((m) => m.done).length;
@@ -96,7 +98,7 @@ function RegistroPage() {
                 onSuccess: () => {
                   setUltimo(value);
                   setTexto("");
-                  toast.success("Refeição registrada.");
+                  setConquista(value);
                 },
               },
             );
@@ -177,6 +179,12 @@ function RegistroPage() {
           ))}
         </ul>
       </section>
+      <AchievementBurst
+        open={!!conquista}
+        title="Refeição registrada!"
+        subtitle={conquista ? `"${conquista}" entrou no seu dia e conta no seu Nativo Score.` : ""}
+        onDone={() => setConquista(null)}
+      />
     </AppShell>
   );
 }
