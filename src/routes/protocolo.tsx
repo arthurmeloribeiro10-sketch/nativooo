@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Lock, Check } from "lucide-react";
+import { Check, Lock } from "lucide-react";
+import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
-import { protocolDays } from "@/lib/nativo-data";
+import { useAuth } from "@/lib/auth-context";
+import { useProtocol, useToggleProtocolDay } from "@/lib/nativo-queries";
 
 export const Route = createFileRoute("/protocolo")({
   head: () => ({
@@ -23,8 +25,27 @@ export const Route = createFileRoute("/protocolo")({
   component: ProtocoloPage,
 });
 
+const focos = ["Comida real", "Sol da manhã", "Movimento diário", "Sono regular", "Presença", "Natureza"];
+
+const acoesPorFoco: Record<string, string[]> = {
+  "Comida real": ["Uma refeição só com comida de verdade", "Zero ultraprocessado no lanche", "Beba água antes das refeições"],
+  "Sol da manhã": ["15 minutos de sol antes das 10h", "Sem óculos escuros na primeira luz", "Café da manhã perto da janela"],
+  "Movimento diário": ["Caminhada de 20 minutos", "Subir escadas em vez de elevador", "Alongar 5 minutos"],
+  "Sono regular": ["Dormir e acordar no mesmo horário", "Luz baixa uma hora antes de dormir", "Sem tela na cama"],
+  Presença: ["30 minutos sem celular", "Uma refeição sem tela", "Cinco minutos de respiração"],
+  Natureza: ["Pés descalços na grama", "Uma volta em área verde", "Ar livre por 30 minutos"],
+};
+
 function ProtocoloPage() {
-  const concluidos = protocolDays.filter((d) => d.state === "done").length;
+  const { user } = useAuth();
+  const userId = user?.id;
+  const protocol = useProtocol(userId);
+  const toggleDay = useToggleProtocolDay(userId);
+
+  const completed = protocol.data ?? [];
+  const concluidos = completed.length;
+  const hoje = Math.min(concluidos + 1, 30);
+  const focoHoje = focos[(hoje - 1) % focos.length] ?? focos[0]!;
 
   return (
     <AppShell>
@@ -40,7 +61,7 @@ function ProtocoloPage() {
         </div>
         <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-primary-foreground/20">
           <div
-            className="h-full rounded-full bg-success"
+            className="h-full rounded-full bg-success transition-[width] duration-700"
             style={{ width: `${(concluidos / 30) * 100}%` }}
           />
         </div>
@@ -50,14 +71,10 @@ function ProtocoloPage() {
       </section>
 
       <section className="surface mt-6 p-5">
-        <h2 className="text-lg">Hoje · Dia 12</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Foco: sono regular</p>
+        <h2 className="text-lg">Hoje · Dia {hoje}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Foco: {focoHoje.toLowerCase()}</p>
         <ul className="mt-4 space-y-2 text-sm">
-          {[
-            "Dormir e acordar no mesmo horário",
-            "Luz baixa uma hora antes de dormir",
-            "Sem tela na cama",
-          ].map((item) => (
+          {(acoesPorFoco[focoHoje] ?? []).map((item) => (
             <li
               key={item}
               className="flex items-center gap-3 rounded-xl border border-border/70 bg-background/50 p-3"
@@ -67,50 +84,60 @@ function ProtocoloPage() {
             </li>
           ))}
         </ul>
+        <button
+          type="button"
+          disabled={concluidos >= 30}
+          onClick={() =>
+            toggleDay.mutate(
+              { day: hoje, done: true },
+              { onSuccess: () => toast.success(`Dia ${hoje} concluído.`) },
+            )
+          }
+          className="mt-5 w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+        >
+          {concluidos >= 30 ? "Protocolo concluído" : `Concluir o dia ${hoje}`}
+        </button>
       </section>
 
       <section className="surface mt-6 p-5">
         <h2 className="text-lg">Jornada completa</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Toque em um dia concluído para desmarcá-lo.
+        </p>
         <div className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-6">
-          {protocolDays.map((d) => (
-            <div
-              key={d.day}
-              title={d.focus}
-              className={`flex aspect-square flex-col items-center justify-center rounded-2xl border text-xs font-medium ${
-                d.state === "done"
-                  ? "border-success/40 bg-success/15 text-foreground"
-                  : d.state === "today"
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background/50 text-muted-foreground"
-              }`}
-            >
-              {d.state === "done" ? (
-                <Check className="size-3.5 text-success" />
-              ) : d.state === "locked" ? (
-                <Lock className="size-3" strokeWidth={1.6} />
-              ) : null}
-              <span className="mt-1">{d.day}</span>
-            </div>
-          ))}
+          {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => {
+            const done = completed.includes(day);
+            const isToday = day === hoje;
+            return (
+              <button
+                key={day}
+                type="button"
+                title={focos[(day - 1) % focos.length]}
+                onClick={() => {
+                  if (done) toggleDay.mutate({ day, done: false });
+                  else if (isToday) toggleDay.mutate({ day, done: true });
+                }}
+                className={`flex aspect-square flex-col items-center justify-center rounded-2xl border text-xs font-medium transition-colors ${
+                  done
+                    ? "border-success/40 bg-success/15 text-foreground"
+                    : isToday
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background/50 text-muted-foreground"
+                }`}
+              >
+                {done ? (
+                  <Check className="size-3.5 text-success" />
+                ) : !isToday ? (
+                  <Lock className="size-3" strokeWidth={1.6} />
+                ) : null}
+                <span className="mt-1">{day}</span>
+              </button>
+            );
+          })}
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
           Ao concluir, você recebe o selo simbólico do Método Nativo.
         </p>
-      </section>
-
-      <section className="surface mt-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg">Protocolos premium</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Jornadas completas, análises e histórico no Nativo Pro.
-          </p>
-        </div>
-        <button
-          type="button"
-          className="rounded-full bg-gold px-5 py-3 text-sm font-medium text-gold-foreground transition-opacity hover:opacity-90"
-        >
-          Conhecer o Pro · R$ 29,90/mês
-        </button>
       </section>
     </AppShell>
   );
