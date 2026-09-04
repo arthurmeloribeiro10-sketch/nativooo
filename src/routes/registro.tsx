@@ -58,6 +58,7 @@ function RegistroPage() {
 
   const [texto, setTexto] = useState("");
   const [ultimo, setUltimo] = useState<string | null>(null);
+  const [conquista, setConquista] = useState<string | null>(null);
 
   const missionList = missions.data ?? [];
   const registradasHoje = (meals.data ?? []).filter((m) => m.done).length;
