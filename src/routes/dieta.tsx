@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Check, Plus, Trash2, UtensilsCrossed } from "lucide-react";
+import { Check, Leaf, Loader2, Plus, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
+import { AchievementBurst } from "@/components/nativo/AchievementBurst";
 import { useAuth } from "@/lib/auth-context";
+import { generateJungleDiet } from "@/lib/diet-ai.functions";
 import { useMealMutations, useMeals } from "@/lib/nativo-queries";
 
 export const Route = createFileRoute("/dieta")({
