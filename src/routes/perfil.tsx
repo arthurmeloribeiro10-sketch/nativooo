@@ -84,7 +84,7 @@ function PerfilPage() {
     <AppShell>
       <PageTitle
         title={profile.data?.display_name ?? "Seu perfil"}
-        subtitle={user?.email ?? undefined}
+        subtitle={user?.email ?? ""}
       />
 
       <section className="surface grid grid-cols-3 divide-x divide-border/60 p-5 text-center">
