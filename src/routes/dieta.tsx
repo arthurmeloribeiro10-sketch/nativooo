@@ -165,6 +165,68 @@ function DietaPage() {
       </section>
 
       <section className="surface mt-6 p-5">
+        <h2 className="flex items-center gap-2 text-lg">
+          <Sparkles className="size-5 text-gold" strokeWidth={1.6} />
+          Dieta da selva com IA
+        </h2>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          Diga seu peso e sua altura. A IA monta um dia inteiro de comida real, com horários, e já
+          coloca tudo nas suas refeições de hoje.
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <label className="text-xs text-muted-foreground">
+            Peso (kg)
+            <input
+              inputMode="decimal"
+              value={peso}
+              onChange={(e) => setPeso(e.target.value)}
+              placeholder="78"
+              className="mt-1 w-full rounded-xl border border-input bg-background/70 px-4 py-3 text-sm text-foreground outline-none focus:border-leaf"
+            />
+          </label>
+          <label className="text-xs text-muted-foreground">
+            Altura (cm)
+            <input
+              inputMode="decimal"
+              value={altura}
+              onChange={(e) => setAltura(e.target.value)}
+              placeholder="180"
+              className="mt-1 w-full rounded-xl border border-input bg-background/70 px-4 py-3 text-sm text-foreground outline-none focus:border-leaf"
+            />
+          </label>
+        </div>
+        <input
+          value={objetivo}
+          onChange={(e) => setObjetivo(e.target.value)}
+          placeholder="Objetivo (opcional): mais energia, emagrecer, ganhar massa"
+          className="mt-2 w-full rounded-xl border border-input bg-background/70 px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-leaf"
+        />
+        <button
+          type="button"
+          disabled={gerando}
+          onClick={() => void gerarDietaDaSelva()}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+        >
+          {gerando ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Montando sua dieta…
+            </>
+          ) : (
+            <>
+              <Leaf className="size-4" strokeWidth={1.8} />
+              Montar dieta da selva
+            </>
+          )}
+        </button>
+        {resumoIa ? (
+          <p className="rise mt-4 rounded-2xl border border-leaf/40 bg-leaf/10 p-4 text-xs leading-relaxed text-foreground">
+            {resumoIa}
+          </p>
+        ) : null}
+      </section>
+
+      <section className="surface mt-6 p-5">
         <h2 className="text-lg">Refeições do dia</h2>
         {meals.isLoading ? (
           <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
