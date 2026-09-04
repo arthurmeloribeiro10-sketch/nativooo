@@ -1,6 +1,8 @@
-import { Link } from "@tanstack/react-router";
-import { Home, Camera, Salad, Sun, Users, User } from "lucide-react";
-import type { ReactNode } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Home, Camera, Salad, Sun, Users, User, LogOut } from "lucide-react";
+import { useEffect, type ReactNode } from "react";
+
+import { useAuth } from "@/lib/auth-context";
 
 const nav = [
   { to: "/", label: "Home", icon: Home },
@@ -9,18 +11,41 @@ const nav = [
   { to: "/corpo", label: "Corpo", icon: Sun },
   { to: "/comunidade", label: "Comunidade", icon: Users },
   { to: "/perfil", label: "Perfil", icon: User },
-];
+] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { session, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !session) navigate({ to: "/auth" });
+  }, [loading, session, navigate]);
+
+  if (loading || !session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-6">
+        <p className="text-sm text-muted-foreground">Carregando seu dia…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-5 pb-28 pt-6">
       <header className="mb-6 flex items-center justify-between">
         <Link to="/" className="flex items-baseline gap-2">
           <span className="font-display text-xl font-bold tracking-[0.22em] text-primary">NATIVO</span>
         </Link>
-        <span className="hidden text-xs text-muted-foreground sm:block">
-          Seu estilo de vida em prática.
-        </span>
+        <button
+          type="button"
+          onClick={async () => {
+            await signOut();
+            navigate({ to: "/auth" });
+          }}
+          className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-leaf hover:text-foreground"
+        >
+          <LogOut className="size-3.5" strokeWidth={1.6} />
+          Sair
+        </button>
       </header>
 
       <main className="flex-1">{children}</main>
