@@ -102,6 +102,40 @@ function DietaPage() {
   const { toggle, add, remove, replaceWithTemplate } = useMealMutations(userId);
   const [novaRefeicao, setNovaRefeicao] = useState("");
 
+  const montarDieta = useServerFn(generateJungleDiet);
+  const [peso, setPeso] = useState("");
+  const [altura, setAltura] = useState("");
+  const [objetivo, setObjetivo] = useState("");
+  const [gerando, setGerando] = useState(false);
+  const [resumoIa, setResumoIa] = useState<string | null>(null);
+  const [conquista, setConquista] = useState(false);
+
+  async function gerarDietaDaSelva() {
+    const weightKg = Number(peso.replace(",", "."));
+    const heightCm = Number(altura.replace(",", "."));
+    if (!weightKg || !heightCm) {
+      toast.error("Preencha seu peso e sua altura para a IA montar o plano.");
+      return;
+    }
+    setGerando(true);
+    try {
+      const plano = await montarDieta({
+        data: {
+          weightKg,
+          heightCm,
+          ...(objetivo.trim() ? { goal: objetivo.trim() } : {}),
+        },
+      });
+      await replaceWithTemplate.mutateAsync(plano.meals);
+      setResumoIa(plano.summary);
+      setConquista(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não consegui montar a dieta agora.");
+    } finally {
+      setGerando(false);
+    }
+  }
+
   const list = meals.data ?? [];
   const feitas = list.filter((m) => m.done).length;
   const kcal = list.filter((m) => m.done).reduce((s, m) => s + m.kcal, 0);
