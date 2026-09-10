@@ -7,6 +7,8 @@ const inputSchema = z.object({
   weightKg: z.number().min(25).max(300),
   heightCm: z.number().min(100).max(250),
   goal: z.string().max(120).optional(),
+  startTime: z.string().max(10).optional(),
+  notes: z.string().max(500).optional(),
 });
 
 export type JungleMeal = {
@@ -31,7 +33,11 @@ export const generateJungleDiet = createServerFn({ method: "POST" })
 
     const prompt = `Monte uma dieta no estilo Ray Peat (pró-metabólica: frutas maduras e sucos de fruta, leite e derivados, queijos, ovos, carne vermelha, frutos do mar, batata, cenoura crua, mel, açúcar de fontes naturais, sal a gosto, café com leite; evitar óleos de semente, grãos integrais em excesso e vegetais crucíferos crus) para uma pessoa de ${data.weightKg} kg e ${data.heightCm} cm.${
       data.goal ? ` Objetivo: ${data.goal}.` : ""
-    } Use 4 a 5 refeições com horários em formato "07h30". Ingredientes brasileiros e acessíveis. Responda em português do Brasil.`;
+    } Use 4 a 5 refeições com horários em formato "07h30".${
+      data.startTime ? ` A primeira refeição deve começar às ${data.startTime} e as demais devem seguir a partir desse horário.` : ""
+    }${
+      data.notes ? ` Observações e pedidos da pessoa (respeite-os): ${data.notes}.` : ""
+    } Ingredientes brasileiros e acessíveis. Responda em português do Brasil.`;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

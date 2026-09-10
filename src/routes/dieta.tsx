@@ -1,13 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Check, Leaf, Loader2, Plus, Sparkles, Trash2, UtensilsCrossed } from "lucide-react";
+import {
+  Check,
+  Leaf,
+  Loader2,
+  MessageCircle,
+  Plus,
+  Send,
+  Sparkles,
+  Trash2,
+  UtensilsCrossed,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
 import { AchievementBurst } from "@/components/nativo/AchievementBurst";
 import { useAuth } from "@/lib/auth-context";
 import { generateJungleDiet } from "@/lib/diet-ai.functions";
+import { askRayPeatCoach } from "@/lib/diet-chat.functions";
 import { useMealMutations, useMeals } from "@/lib/nativo-queries";
 
 export const Route = createFileRoute("/dieta")({
@@ -106,9 +117,33 @@ function DietaPage() {
   const [peso, setPeso] = useState("");
   const [altura, setAltura] = useState("");
   const [objetivo, setObjetivo] = useState("");
+  const [horaInicio, setHoraInicio] = useState("");
+  const [observacoes, setObservacoes] = useState("");
   const [gerando, setGerando] = useState(false);
   const [resumoIa, setResumoIa] = useState<string | null>(null);
   const [conquista, setConquista] = useState(false);
+
+  const perguntarCoach = useServerFn(askRayPeatCoach);
+  const [pergunta, setPergunta] = useState("");
+  const [conversa, setConversa] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [respondendo, setRespondendo] = useState(false);
+
+  async function enviarPergunta() {
+    const texto = pergunta.trim();
+    if (!texto || respondendo) return;
+    const historico = [...conversa, { role: "user" as const, content: texto }];
+    setConversa(historico);
+    setPergunta("");
+    setRespondendo(true);
+    try {
+      const { reply } = await perguntarCoach({ data: { messages: historico.slice(-12) } });
+      setConversa([...historico, { role: "assistant", content: reply }]);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não consegui responder agora.");
+    } finally {
+      setRespondendo(false);
+    }
+  }
 
   async function gerarDieta() {
     const weightKg = Number(peso.replace(",", "."));
@@ -124,6 +159,8 @@ function DietaPage() {
           weightKg,
           heightCm,
           ...(objetivo.trim() ? { goal: objetivo.trim() } : {}),
+          ...(horaInicio.trim() ? { startTime: horaInicio.trim() } : {}),
+          ...(observacoes.trim() ? { notes: observacoes.trim() } : {}),
         },
       });
       await replaceWithTemplate.mutateAsync(plano.meals);
@@ -200,6 +237,23 @@ function DietaPage() {
           onChange={(e) => setObjetivo(e.target.value)}
           placeholder="Objetivo (opcional): mais energia, emagrecer, ganhar massa"
           className="mt-2 w-full rounded-xl border border-input bg-background/70 px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-leaf"
+        />
+        <label className="mt-2 block text-xs text-muted-foreground">
+          A que horas você quer começar a comer?
+          <input
+            type="time"
+            value={horaInicio}
+            onChange={(e) => setHoraInicio(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-input bg-background/70 px-4 py-3 text-sm text-foreground outline-none focus:border-leaf"
+          />
+        </label>
+        <textarea
+          value={observacoes}
+          onChange={(e) => setObservacoes(e.target.value)}
+          rows={3}
+          maxLength={500}
+          placeholder="Quer acrescentar algo? (ex.: não gosto de fígado, incluir suco de laranja, tenho pouco tempo no almoço)"
+          className="mt-2 w-full resize-none rounded-xl border border-input bg-background/70 px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-leaf"
         />
         <button
           type="button"
@@ -331,6 +385,66 @@ function DietaPage() {
           "Comida real na maior parte do tempo já muda o seu dia."
         </p>
       </section>
+
+      <section className="surface mt-6 p-5">
+        <h2 className="flex items-center gap-2 text-lg">
+          <MessageCircle className="size-5 text-leaf" strokeWidth={1.6} />
+          Tire suas dúvidas
+        </h2>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          Pergunte o que quiser sobre alimentação pró-metabólica no estilo Ray Peat: leite, frutas,
+          açúcar, café, gorduras, energia e digestão.
+        </p>
+
+        {conversa.length ? (
+          <ul className="mt-4 space-y-2">
+            {conversa.map((m, i) => (
+              <li
+                key={i}
+                className={`rounded-2xl border p-4 text-sm leading-relaxed ${
+                  m.role === "user"
+                    ? "border-border/70 bg-background/50 text-foreground"
+                    : "border-leaf/40 bg-leaf/10 text-foreground"
+                }`}
+              >
+                <span className="mb-1 block text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {m.role === "user" ? "Você" : "Nativo"}
+                </span>
+                {m.content}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {respondendo ? (
+          <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="size-3 animate-spin" />
+            Pensando…
+          </p>
+        ) : null}
+
+        <div className="mt-4 flex gap-2">
+          <input
+            value={pergunta}
+            onChange={(e) => setPergunta(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void enviarPergunta();
+            }}
+            placeholder="Ex.: posso tomar café em jejum?"
+            className="flex-1 rounded-full border border-input bg-background/70 px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-leaf"
+          />
+          <button
+            type="button"
+            disabled={respondendo}
+            aria-label="Enviar pergunta"
+            onClick={() => void enviarPergunta()}
+            className="flex items-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            <Send className="size-4" strokeWidth={1.8} />
+          </button>
+        </div>
+      </section>
+
       <AchievementBurst
         open={conquista}
         title="Sua dieta está pronta!"
