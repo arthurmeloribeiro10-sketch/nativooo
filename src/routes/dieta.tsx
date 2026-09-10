@@ -110,7 +110,7 @@ function DietaPage() {
   const [resumoIa, setResumoIa] = useState<string | null>(null);
   const [conquista, setConquista] = useState(false);
 
-  async function gerarDietaDaSelva() {
+  async function gerarDieta() {
     const weightKg = Number(peso.replace(",", "."));
     const heightCm = Number(altura.replace(",", "."));
     if (!weightKg || !heightCm) {
@@ -167,11 +167,11 @@ function DietaPage() {
       <section className="surface mt-6 p-5">
         <h2 className="flex items-center gap-2 text-lg">
           <Sparkles className="size-5 text-gold" strokeWidth={1.6} />
-          Dieta da selva com IA
+          Montar dieta com IA
         </h2>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          Diga seu peso e sua altura. A IA monta um dia inteiro de comida real, com horários, e já
-          coloca tudo nas suas refeições de hoje.
+          Diga seu peso e sua altura. A IA monta um dia inteiro de comida real, pró-metabólica, com
+          horários, e já coloca tudo nas suas refeições de hoje.
         </p>
         <div className="mt-4 grid grid-cols-2 gap-2">
           <label className="text-xs text-muted-foreground">
