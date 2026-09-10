@@ -7,6 +7,8 @@ const inputSchema = z.object({
   weightKg: z.number().min(25).max(300),
   heightCm: z.number().min(100).max(250),
   goal: z.string().max(120).optional(),
+  startTime: z.string().max(10).optional(),
+  notes: z.string().max(500).optional(),
 });
 
 export type JungleMeal = {
