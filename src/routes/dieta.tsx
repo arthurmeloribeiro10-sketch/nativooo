@@ -385,6 +385,66 @@ function DietaPage() {
           "Comida real na maior parte do tempo já muda o seu dia."
         </p>
       </section>
+
+      <section className="surface mt-6 p-5">
+        <h2 className="flex items-center gap-2 text-lg">
+          <MessageCircle className="size-5 text-leaf" strokeWidth={1.6} />
+          Tire suas dúvidas
+        </h2>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          Pergunte o que quiser sobre alimentação pró-metabólica no estilo Ray Peat: leite, frutas,
+          açúcar, café, gorduras, energia e digestão.
+        </p>
+
+        {conversa.length ? (
+          <ul className="mt-4 space-y-2">
+            {conversa.map((m, i) => (
+              <li
+                key={i}
+                className={`rounded-2xl border p-4 text-sm leading-relaxed ${
+                  m.role === "user"
+                    ? "border-border/70 bg-background/50 text-foreground"
+                    : "border-leaf/40 bg-leaf/10 text-foreground"
+                }`}
+              >
+                <span className="mb-1 block text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  {m.role === "user" ? "Você" : "Nativo"}
+                </span>
+                {m.content}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {respondendo ? (
+          <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="size-3 animate-spin" />
+            Pensando…
+          </p>
+        ) : null}
+
+        <div className="mt-4 flex gap-2">
+          <input
+            value={pergunta}
+            onChange={(e) => setPergunta(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void enviarPergunta();
+            }}
+            placeholder="Ex.: posso tomar café em jejum?"
+            className="flex-1 rounded-full border border-input bg-background/70 px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-leaf"
+          />
+          <button
+            type="button"
+            disabled={respondendo}
+            aria-label="Enviar pergunta"
+            onClick={() => void enviarPergunta()}
+            className="flex items-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          >
+            <Send className="size-4" strokeWidth={1.8} />
+          </button>
+        </div>
+      </section>
+
       <AchievementBurst
         open={conquista}
         title="Sua dieta está pronta!"
