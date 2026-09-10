@@ -238,6 +238,23 @@ function DietaPage() {
           placeholder="Objetivo (opcional): mais energia, emagrecer, ganhar massa"
           className="mt-2 w-full rounded-xl border border-input bg-background/70 px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-leaf"
         />
+        <label className="mt-2 block text-xs text-muted-foreground">
+          A que horas você quer começar a comer?
+          <input
+            type="time"
+            value={horaInicio}
+            onChange={(e) => setHoraInicio(e.target.value)}
+            className="mt-1 w-full rounded-xl border border-input bg-background/70 px-4 py-3 text-sm text-foreground outline-none focus:border-leaf"
+          />
+        </label>
+        <textarea
+          value={observacoes}
+          onChange={(e) => setObservacoes(e.target.value)}
+          rows={3}
+          maxLength={500}
+          placeholder="Quer acrescentar algo? (ex.: não gosto de fígado, incluir suco de laranja, tenho pouco tempo no almoço)"
+          className="mt-2 w-full resize-none rounded-xl border border-input bg-background/70 px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-leaf"
+        />
         <button
           type="button"
           disabled={gerando}
