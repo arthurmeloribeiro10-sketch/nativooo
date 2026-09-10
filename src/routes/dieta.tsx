@@ -204,7 +204,7 @@ function DietaPage() {
         <button
           type="button"
           disabled={gerando}
-          onClick={() => void gerarDietaDaSelva()}
+          onClick={() => void gerarDieta()}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {gerando ? (
@@ -215,7 +215,7 @@ function DietaPage() {
           ) : (
             <>
               <Leaf className="size-4" strokeWidth={1.8} />
-              Montar dieta da selva
+              Montar dieta
             </>
           )}
         </button>
@@ -333,7 +333,7 @@ function DietaPage() {
       </section>
       <AchievementBurst
         open={conquista}
-        title="Dieta da selva pronta!"
+        title="Sua dieta está pronta!"
         subtitle="Seu plano de comida real já está nas refeições de hoje."
         onDone={() => setConquista(false)}
       />
