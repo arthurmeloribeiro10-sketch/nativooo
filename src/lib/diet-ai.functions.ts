@@ -29,7 +29,7 @@ export const generateJungleDiet = createServerFn({ method: "POST" })
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("IA indisponível no momento.");
 
-    const prompt = `Monte uma "dieta da selva" (comida real, ancestral, nada industrializado: carnes, ovos, peixes, frutas, raízes, tubérculos, castanhas, mel, folhas) para uma pessoa de ${data.weightKg} kg e ${data.heightCm} cm.${
+    const prompt = `Monte uma dieta no estilo Ray Peat (pró-metabólica: frutas maduras e sucos de fruta, leite e derivados, queijos, ovos, carne vermelha, frutos do mar, batata, cenoura crua, mel, açúcar de fontes naturais, sal a gosto, café com leite; evitar óleos de semente, grãos integrais em excesso e vegetais crucíferos crus) para uma pessoa de ${data.weightKg} kg e ${data.heightCm} cm.${
       data.goal ? ` Objetivo: ${data.goal}.` : ""
     } Use 4 a 5 refeições com horários em formato "07h30". Ingredientes brasileiros e acessíveis. Responda em português do Brasil.`;
 
@@ -45,7 +45,7 @@ export const generateJungleDiet = createServerFn({ method: "POST" })
           {
             role: "system",
             content:
-              "Você é um nutricionista de estilo ancestral. Sempre responda chamando a função entregar_dieta.",
+              "Você é um nutricionista especializado na abordagem pró-metabólica de Ray Peat. Sempre responda chamando a função entregar_dieta.",
           },
           { role: "user", content: prompt },
         ],
