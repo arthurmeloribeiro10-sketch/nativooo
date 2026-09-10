@@ -117,9 +117,33 @@ function DietaPage() {
   const [peso, setPeso] = useState("");
   const [altura, setAltura] = useState("");
   const [objetivo, setObjetivo] = useState("");
+  const [horaInicio, setHoraInicio] = useState("");
+  const [observacoes, setObservacoes] = useState("");
   const [gerando, setGerando] = useState(false);
   const [resumoIa, setResumoIa] = useState<string | null>(null);
   const [conquista, setConquista] = useState(false);
+
+  const perguntarCoach = useServerFn(askRayPeatCoach);
+  const [pergunta, setPergunta] = useState("");
+  const [conversa, setConversa] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [respondendo, setRespondendo] = useState(false);
+
+  async function enviarPergunta() {
+    const texto = pergunta.trim();
+    if (!texto || respondendo) return;
+    const historico = [...conversa, { role: "user" as const, content: texto }];
+    setConversa(historico);
+    setPergunta("");
+    setRespondendo(true);
+    try {
+      const { reply } = await perguntarCoach({ data: { messages: historico.slice(-12) } });
+      setConversa([...historico, { role: "assistant", content: reply }]);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não consegui responder agora.");
+    } finally {
+      setRespondendo(false);
+    }
+  }
 
   async function gerarDieta() {
     const weightKg = Number(peso.replace(",", "."));
@@ -135,6 +159,8 @@ function DietaPage() {
           weightKg,
           heightCm,
           ...(objetivo.trim() ? { goal: objetivo.trim() } : {}),
+          ...(horaInicio.trim() ? { startTime: horaInicio.trim() } : {}),
+          ...(observacoes.trim() ? { notes: observacoes.trim() } : {}),
         },
       });
       await replaceWithTemplate.mutateAsync(plano.meals);
