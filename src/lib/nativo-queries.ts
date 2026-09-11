@@ -425,6 +425,7 @@ export type PostView = {
   author: string;
   reactions: number;
   reacted: boolean;
+  image_url: string | null;
 };
 
 export function usePosts(userId: string | undefined) {
@@ -434,7 +435,7 @@ export function usePosts(userId: string | undefined) {
     queryFn: async (): Promise<PostView[]> => {
       const { data: posts, error } = await supabase
         .from("community_posts")
-        .select("id, body, created_at, user_id")
+        .select("id, body, created_at, user_id, image_path")
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
@@ -442,7 +443,11 @@ export function usePosts(userId: string | undefined) {
       if (rows.length === 0) return [];
 
       const ids = [...new Set(rows.map((p) => p.user_id as string))];
-      const [{ data: profiles }, { data: reactions }] = await Promise.all([
+      const paths = rows
+        .map((p) => (p as { image_path: string | null }).image_path)
+        .filter((p): p is string => !!p);
+
+      const [{ data: profiles }, { data: reactions }, signed] = await Promise.all([
         supabase.from("profiles").select("id, display_name").in("id", ids),
         supabase
           .from("post_reactions")
@@ -451,20 +456,30 @@ export function usePosts(userId: string | undefined) {
             "post_id",
             rows.map((p) => p.id as string),
           ),
+        paths.length
+          ? supabase.storage.from("community-photos").createSignedUrls(paths, 3600)
+          : Promise.resolve({ data: [] as { path: string | null; signedUrl: string }[] }),
       ]);
 
+      const urls = new Map(
+        (signed.data ?? []).map((s) => [s.path as string, s.signedUrl as string]),
+      );
       const names = new Map((profiles ?? []).map((p) => [p.id as string, p.display_name as string]));
       const all = reactions ?? [];
 
-      return rows.map((p) => ({
-        id: p.id as string,
-        body: p.body as string,
-        created_at: p.created_at as string,
-        user_id: p.user_id as string,
-        author: names.get(p.user_id as string) ?? "Nativo",
-        reactions: all.filter((r) => r.post_id === p.id).length,
-        reacted: all.some((r) => r.post_id === p.id && r.user_id === userId),
-      }));
+      return rows.map((p) => {
+        const path = (p as { image_path: string | null }).image_path;
+        return {
+          id: p.id as string,
+          body: p.body as string,
+          created_at: p.created_at as string,
+          user_id: p.user_id as string,
+          author: names.get(p.user_id as string) ?? "Nativo",
+          reactions: all.filter((r) => r.post_id === p.id).length,
+          reacted: all.some((r) => r.post_id === p.id && r.user_id === userId),
+          image_url: path ? (urls.get(path) ?? null) : null,
+        };
+      });
     },
   });
 }
@@ -474,12 +489,25 @@ export function usePostMutations(userId: string | undefined) {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["posts", userId] });
 
   const create = useMutation({
-    mutationFn: async (body: string) => {
-      const { error } = await supabase.from("community_posts").insert({ user_id: userId!, body });
+    mutationFn: async ({ body, file }: { body: string; file?: File | null }) => {
+      let image_path: string | null = null;
+      if (file) {
+        const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+        const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("community-photos")
+          .upload(path, file, { contentType: file.type || "image/jpeg" });
+        if (upErr) throw upErr;
+        image_path = path;
+      }
+      const { error } = await supabase
+        .from("community_posts")
+        .insert({ user_id: userId!, body, image_path });
       if (error) throw error;
     },
     onSuccess: invalidate,
   });
+
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
