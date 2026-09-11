@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Flame, Heart, Trash2 } from "lucide-react";
+import { Flame, Heart, ImagePlus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
