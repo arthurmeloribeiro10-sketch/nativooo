@@ -184,7 +184,17 @@ function ComunidadePage() {
                   </button>
                 ) : null}
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-foreground">{p.body}</p>
+              {p.body ? (
+                <p className="mt-4 text-sm leading-relaxed text-foreground">{p.body}</p>
+              ) : null}
+              {p.image_url ? (
+                <img
+                  src={p.image_url}
+                  alt={`Foto publicada por ${p.author}`}
+                  loading="lazy"
+                  className="mt-4 w-full rounded-2xl object-cover"
+                />
+              ) : null}
               <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
                 <button
                   type="button"
