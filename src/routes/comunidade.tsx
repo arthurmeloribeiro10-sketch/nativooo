@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Flame, Heart, Trash2 } from "lucide-react";
+import { Flame, Heart, ImagePlus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
@@ -43,6 +43,14 @@ function ComunidadePage() {
   const ranking = useRanking();
   const { create, remove, react } = usePostMutations(userId);
   const [texto, setTexto] = useState("");
+  const [foto, setFoto] = useState<File | null>(null);
+  const [previa, setPrevia] = useState<string | null>(null);
+
+  function escolherFoto(file: File | null) {
+    if (previa) URL.revokeObjectURL(previa);
+    setFoto(file);
+    setPrevia(file ? URL.createObjectURL(file) : null);
+  }
 
   return (
     <AppShell>
@@ -60,23 +68,63 @@ function ComunidadePage() {
           placeholder="Como foi o seu dia no protocolo?"
           className="mt-3 w-full resize-none rounded-2xl border border-input bg-background/70 p-4 text-sm outline-none placeholder:text-muted-foreground focus:border-leaf"
         />
+
+        {previa ? (
+          <div className="relative mt-3 overflow-hidden rounded-2xl">
+            <img src={previa} alt="Prévia da foto escolhida" className="w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => escolherFoto(null)}
+              className="absolute right-3 top-3 rounded-full bg-background/85 p-2 text-foreground"
+              aria-label="Remover foto"
+            >
+              <X className="size-4" strokeWidth={1.8} />
+            </button>
+          </div>
+        ) : null}
+
+        <label className="mt-3 flex w-fit cursor-pointer items-center gap-2 rounded-full border border-input px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-leaf hover:text-foreground">
+          <ImagePlus className="size-4" strokeWidth={1.6} />
+          {foto ? "Trocar foto" : "Adicionar foto"}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              if (f && f.size > 10 * 1024 * 1024) {
+                toast.error("A foto precisa ter até 10 MB.");
+                return;
+              }
+              escolherFoto(f);
+            }}
+          />
+        </label>
+
         <button
           type="button"
+          disabled={create.isPending}
           onClick={() => {
             const value = texto.trim();
-            if (!value) return;
-            create.mutate(value, {
-              onSuccess: () => {
-                setTexto("");
-                toast.success("Publicado na comunidade.");
+            if (!value && !foto) return;
+            create.mutate(
+              { body: value, file: foto },
+              {
+                onSuccess: () => {
+                  setTexto("");
+                  escolherFoto(null);
+                  toast.success("Publicado na comunidade.");
+                },
+                onError: () => toast.error("Não consegui publicar agora."),
               },
-            });
+            );
           }}
-          className="mt-3 w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          className="mt-3 w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          Publicar
+          {create.isPending ? "Publicando…" : "Publicar"}
         </button>
       </section>
+
 
       <section className="surface mt-6 p-5">
         <h2 className="text-lg">Ranking de consistência</h2>
@@ -136,7 +184,17 @@ function ComunidadePage() {
                   </button>
                 ) : null}
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-foreground">{p.body}</p>
+              {p.body ? (
+                <p className="mt-4 text-sm leading-relaxed text-foreground">{p.body}</p>
+              ) : null}
+              {p.image_url ? (
+                <img
+                  src={p.image_url}
+                  alt={`Foto publicada por ${p.author}`}
+                  loading="lazy"
+                  className="mt-4 w-full rounded-2xl object-cover"
+                />
+              ) : null}
               <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
                 <button
                   type="button"
