@@ -35,7 +35,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Hábitos, protocolos e evolução pessoal em um só lugar. Comece pelo protocolo de 30 dias do João Braga.",
+          "Hábitos, protocolos e evolução pessoal em um só lugar. Comece pelo protocolo de 30 dias do Nativo.",
       },
     ],
   }),

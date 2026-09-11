@@ -9,13 +9,13 @@ import { useProtocol, useToggleProtocolDay } from "@/lib/nativo-queries";
 export const Route = createFileRoute("/protocolo")({
   head: () => ({
     meta: [
-      { title: "Protocolo Nativo de 30 dias — João Braga" },
+      { title: "Protocolo Nativo de 30 dias" },
       {
         name: "description",
         content:
-          "A jornada de 30 dias de lifestyle natural do creator João Braga: missões diárias, conteúdos e acompanhamento de consistência.",
+          "A jornada de 30 dias de lifestyle natural: missões diárias, conteúdos e acompanhamento de consistência.",
       },
-      { property: "og:title", content: "Protocolo Nativo de 30 dias — João Braga" },
+      { property: "og:title", content: "Protocolo Nativo de 30 dias" },
       {
         property: "og:description",
         content: "Comida real, sol, movimento, sono e presença em uma jornada guiada de 30 dias.",
@@ -51,7 +51,7 @@ function ProtocoloPage() {
     <AppShell>
       <PageTitle
         title="Protocolo Nativo · 30 dias"
-        subtitle="Lifestyle natural com João Braga — seu creator guia, não fiscal."
+        subtitle="Lifestyle natural em 30 dias — um guia simples, não um fiscal."
       />
 
       <section className="surface-deep p-6">

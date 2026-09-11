@@ -215,7 +215,7 @@ export const dietTemplates = [
   {
     id: "t1",
     name: "Comida real clássica",
-    detail: "Base do João Braga: proteína, vegetais e carboidrato natural em 4 refeições.",
+    detail: "Base do Nativo: proteína, vegetais e carboidrato natural em 4 refeições.",
     meals: 4,
   },
   {
