@@ -69,8 +69,8 @@ export type Mission = {
 export const todayMissions: Mission[] = [
   {
     id: "m1",
-    title: "15 minutos de sol antes das 10h",
-    detail: "Sem óculos escuros, de preferência caminhando.",
+    title: "Tempo ao ar livre pela manhã",
+    detail: "Consulte o índice UV e use proteção adequada para pele e olhos.",
     pillar: "Sol e natureza",
     done: true,
   },
@@ -237,16 +237,15 @@ export const dietTemplates = [
 export type SunHour = { hour: string; uv: number };
 
 export const sunToday = {
-  condition: "Céu limpo com nuvens altas",
-  uvPeak: 9,
-  sunrise: "06h12",
-  sunset: "17h48",
-  bestWindow: "07h00 – 09h30",
-  avoidWindow: "11h00 – 15h00",
-  minutesRecommended: 20,
-  verdict: "bom" as "bom" | "moderado" | "evitar",
-  message:
-    "Dia bom para pegar sol. Aproveite a manhã: 20 minutos de pele exposta antes das 9h30, sem óculos escuros.",
+  condition: "Dados locais necessários",
+  uvPeak: null,
+  sunrise: null,
+  sunset: null,
+  bestWindow: null,
+  avoidWindow: null,
+  minutesRecommended: null,
+  verdict: "indisponível" as const,
+  message: "Consulte a previsão local antes de planejar exposição direta ao sol.",
 };
 
 export const sunHours: SunHour[] = [

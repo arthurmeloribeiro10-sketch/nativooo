@@ -21,6 +21,8 @@ export const Route = createFileRoute("/auth")({
         property: "og:description",
         content: "Sua conta guarda seu progresso, seu protocolo e sua evolução.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,

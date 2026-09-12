@@ -34,6 +34,8 @@ export const Route = createFileRoute("/perfil")({
         property: "og:description",
         content: "Menos controle ansioso. Mais vida bem vivida — acompanhe sua evolução real.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PerfilPage,
@@ -146,7 +148,7 @@ function PerfilPage() {
           onClick={() =>
             updateProfile.mutate(
               { display_name: nome.trim() || "Nativo", step_goal: Number(meta) || 10000, meal_goal: Number(metaRefeicoes) || 4, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-              { onSuccess: () => toast.success("Perfil atualizado.") },
+               { onSuccess: () => toast.success("Perfil atualizado."), onError: () => toast.error("Não foi possível salvar suas metas. Tente novamente.") },
             )
           }
           className="mt-4 w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"

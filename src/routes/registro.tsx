@@ -31,6 +31,8 @@ export const Route = createFileRoute("/registro")({
         property: "og:description",
         content: "Poucos toques para registrar seu dia e ver o Nativo Score se atualizar.",
       },
+       { property: "og:type", content: "website" },
+       { name: "twitter:card", content: "summary" },
     ],
   }),
   component: RegistroPage,
@@ -80,7 +82,7 @@ function RegistroPage() {
           Registrar refeição
         </h2>
          <p className="mt-1 text-xs text-muted-foreground">
-          {registradasHoje} refeições marcadas como feitas hoje.
+           {registradasHoje} {registradasHoje === 1 ? "refeição marcada" : "refeições marcadas"} como {registradasHoje === 1 ? "feita" : "feitas"} hoje.
         </p>
         {(recent.data ?? []).length ? <div className="mt-3"><p className="text-xs font-medium text-muted-foreground">Repetir uma recente</p><div className="mt-2 flex gap-2 overflow-x-auto pb-1">{(recent.data ?? []).map((meal) => <button key={meal.id} disabled={repeat.isPending} onClick={() => repeat.mutate(meal, { onSuccess: () => toast.success("Refeição repetida."), onError: () => toast.error("Não foi possível repetir. Tente novamente.") })} className="flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs"><RotateCcw className="size-3"/>{meal.name}</button>)}</div></div> : null}
 
@@ -105,6 +107,7 @@ function RegistroPage() {
                   setTexto("");
                   setConquista(value);
                 },
+                onError: () => toast.error("Não foi possível registrar. O texto foi mantido para você tentar novamente."),
               },
             );
           }}
