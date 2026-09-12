@@ -41,9 +41,14 @@ export const askRayPeatCoach = createServerFn({ method: "POST" })
       }),
     });
 
-    if (res.status === 429) throw new Error("Muitos pedidos agora. Tente de novo em instantes.");
-    if (res.status === 402) throw new Error("Créditos de IA esgotados.");
-    if (!res.ok) throw new Error("Não consegui responder agora.");
+    if (!res.ok) {
+      const failure = (await res.json().catch(() => null)) as { message?: string } | null;
+      if (res.status === 429) throw new Error(failure?.message || "Muitos pedidos agora. Aguarde e tente novamente.");
+      if (res.status === 402) throw new Error(failure?.message || "Os créditos de IA acabaram. O responsável pelo app precisa adicionar créditos.");
+      if (res.status === 403) throw new Error(failure?.message || "A IA está indisponível por uma regra do espaço.");
+      if (res.status === 401) throw new Error("A IA não está configurada corretamente.");
+      throw new Error(failure?.message || "Não consegui responder agora.");
+    }
 
     const json = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
