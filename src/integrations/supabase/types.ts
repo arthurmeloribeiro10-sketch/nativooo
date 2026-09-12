@@ -188,6 +188,7 @@ export type Database = {
           done: boolean
           id: string
           pillar: string
+          status: string
           title: string
           user_id: string
         }
@@ -198,6 +199,7 @@ export type Database = {
           done?: boolean
           id?: string
           pillar?: string
+          status?: string
           title: string
           user_id: string
         }
@@ -208,6 +210,7 @@ export type Database = {
           done?: boolean
           id?: string
           pillar?: string
+          status?: string
           title?: string
           user_id?: string
         }
