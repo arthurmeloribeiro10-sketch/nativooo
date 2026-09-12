@@ -121,6 +121,101 @@ export type Database = {
         }
         Relationships: []
       }
+      health_connections: {
+        Row: {
+          created_at: string
+          device_name: string | null
+          id: string
+          last_error: string | null
+          last_synced_at: string | null
+          permissions: string[]
+          provider: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_name?: string | null
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          permissions?: string[]
+          provider: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_name?: string | null
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          permissions?: string[]
+          provider?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_samples: {
+        Row: {
+          connection_id: string | null
+          created_at: string
+          end_at: string | null
+          external_id: string
+          id: string
+          measured_at: string
+          metadata: Json
+          metric_type: string
+          source_device: string | null
+          source_name: string
+          unit: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          connection_id?: string | null
+          created_at?: string
+          end_at?: string | null
+          external_id: string
+          id?: string
+          measured_at: string
+          metadata?: Json
+          metric_type: string
+          source_device?: string | null
+          source_name: string
+          unit: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          connection_id?: string | null
+          created_at?: string
+          end_at?: string | null
+          external_id?: string
+          id?: string
+          measured_at?: string
+          metadata?: Json
+          metric_type?: string
+          source_device?: string | null
+          source_name?: string
+          unit?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_samples_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "health_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meals: {
         Row: {
           created_at: string
@@ -248,6 +343,7 @@ export type Database = {
       profiles: {
         Row: {
           activity_level: string | null
+          birth_date: string | null
           created_at: string
           diet_goal: string | null
           display_name: string
@@ -258,6 +354,7 @@ export type Database = {
           height_cm: number | null
           id: string
           meal_goal: number
+          metabolic_sex: string | null
           preferred_start_time: string | null
           prep_time: string | null
           step_goal: number
@@ -267,6 +364,7 @@ export type Database = {
         }
         Insert: {
           activity_level?: string | null
+          birth_date?: string | null
           created_at?: string
           diet_goal?: string | null
           display_name?: string
@@ -277,6 +375,7 @@ export type Database = {
           height_cm?: number | null
           id: string
           meal_goal?: number
+          metabolic_sex?: string | null
           preferred_start_time?: string | null
           prep_time?: string | null
           step_goal?: number
@@ -286,6 +385,7 @@ export type Database = {
         }
         Update: {
           activity_level?: string | null
+          birth_date?: string | null
           created_at?: string
           diet_goal?: string | null
           display_name?: string
@@ -296,6 +396,7 @@ export type Database = {
           height_cm?: number | null
           id?: string
           meal_goal?: number
+          metabolic_sex?: string | null
           preferred_start_time?: string | null
           prep_time?: string | null
           step_goal?: number
