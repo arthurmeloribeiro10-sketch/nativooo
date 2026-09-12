@@ -29,7 +29,7 @@ const focos = ["Comida real", "Sol da manhã", "Movimento diário", "Sono regula
 
 const acoesPorFoco: Record<string, string[]> = {
   "Comida real": ["Uma refeição só com comida de verdade", "Zero ultraprocessado no lanche", "Beba água antes das refeições"],
-  "Sol da manhã": ["15 minutos de sol antes das 10h", "Sem óculos escuros na primeira luz", "Café da manhã perto da janela"],
+  "Sol da manhã": ["Passe um tempo ao ar livre pela manhã", "Consulte o UV e use a proteção adequada", "Tome o café da manhã perto da janela"],
   "Movimento diário": ["Caminhada de 20 minutos", "Subir escadas em vez de elevador", "Alongar 5 minutos"],
   "Sono regular": ["Dormir e acordar no mesmo horário", "Luz baixa uma hora antes de dormir", "Sem tela na cama"],
   Presença: ["30 minutos sem celular", "Uma refeição sem tela", "Cinco minutos de respiração"],

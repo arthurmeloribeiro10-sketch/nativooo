@@ -1,246 +1,37 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Camera, Flame, Salad, Sun } from "lucide-react";
-
+import { ArrowRight, Check, Flame, Salad, Sun } from "lucide-react";
+import { toast } from "sonner";
 import heroImage from "@/assets/nativo-hero.jpg";
 import { AppShell } from "@/components/nativo/AppShell";
 import { PillarBar } from "@/components/nativo/PillarBar";
 import { ScoreRing } from "@/components/nativo/ScoreRing";
 import { useAuth } from "@/lib/auth-context";
-import {
-  averageScore,
-  computePillars,
-  computeStreak,
-  lastDays,
-  useMeals,
-  useMissions,
-  useMissionsWeek,
-  useProfile,
-  useProtocol,
-  useSleepWeek,
-  useStepsWeek,
-  useToggleMission,
-  weekdayLabel,
-} from "@/lib/nativo-queries";
+import { firstName, plural } from "@/lib/format";
+import { averageScore, computePillars, computeStreak, lastDays, today, useMeals, useMissions, useMissionsWeek, useProfile, useProtocol, useSleepWeek, useStepsWeek, useToggleMission, weekdayLabel } from "@/lib/nativo-queries";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "NATIVO — Seu estilo de vida em prática" },
-      {
-        name: "description",
-        content:
-          "O NATIVO transforma o lifestyle de creators em hábitos diários: Nativo Score, protocolos, missões e comunidade. Menos controle. Mais vida bem vivida.",
-      },
-      { property: "og:title", content: "NATIVO — Seu estilo de vida em prática" },
-      {
-        property: "og:description",
-        content:
-          "Hábitos, protocolos e evolução pessoal em um só lugar. Comece pelo protocolo de 30 dias do Nativo.",
-      },
-    ],
-  }),
-  component: Home,
-});
+export const Route = createFileRoute("/")({ head: () => ({ meta: [
+  { title: "NATIVO — Hábitos naturais para hoje" }, { name: "description", content: "Veja suas ações do dia, registre hábitos e acompanhe seu progresso no NATIVO." },
+  { property: "og:title", content: "NATIVO — Hábitos naturais para hoje" }, { property: "og:description", content: "Alimentação, movimento, sono, ar livre e constância em ações simples." },
+  { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+] }), component: Home });
 
 function Home() {
-  const { user } = useAuth();
-  const userId = user?.id;
+  const { user } = useAuth(); const userId = user?.id;
+  const profile = useProfile(userId); const missions = useMissions(userId); const missionsWeek = useMissionsWeek(userId); const meals = useMeals(userId); const steps = useStepsWeek(userId); const sleep = useSleepWeek(userId); const protocol = useProtocol(userId); const toggle = useToggleMission(userId);
+  const pillars = computePillars({ meals: meals.data ?? [], missions: missions.data ?? [], steps: steps.data ?? [], sleep: sleep.data ?? [], stepGoal: profile.data?.step_goal ?? 10000, mealGoal: profile.data?.meal_goal ?? 4 });
+  const score = averageScore(pillars); const recorded = pillars.filter((p) => p.score !== null).length; const list = missions.data ?? []; const pending = list.filter((m) => !m.done); const completed = list.filter((m) => m.done); const streak = computeStreak(missionsWeek.data ?? []); const protocolDays = (protocol.data ?? []).length;
+  const hour = Number(new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", hour12: false, timeZone: profile.data?.timezone || undefined }).format(new Date()));
+  const next = pending[0] ? { text: pending[0].title, href: "/registro" as const } : (meals.data ?? []).length === 0 ? { text: "Faça seu primeiro registro do dia", href: "/registro" as const } : hour < 18 ? { text: "Confira seus passos e o UV atual", href: "/corpo" as const } : { text: "Registre como foi seu sono", href: "/corpo" as const };
+  const week = lastDays(7).map((day) => { const rows = (missionsWeek.data ?? []).filter((m) => m.day === day); return { day, label: weekdayLabel(day), score: rows.length ? Math.round(rows.filter((m) => m.done).length / rows.length * 100) : null }; });
+  const stateLabel = score === null ? "Aguardando seus primeiros registros" : recorded < pillars.length ? "Resumo parcial do dia" : "Progresso dos hábitos registrados";
 
-  const profile = useProfile(userId);
-  const missions = useMissions(userId);
-  const missionsWeek = useMissionsWeek(userId);
-  const meals = useMeals(userId);
-  const steps = useStepsWeek(userId);
-  const sleep = useSleepWeek(userId);
-  const protocol = useProtocol(userId);
-  const toggleMission = useToggleMission(userId);
-
-  const pillars = computePillars({
-    meals: meals.data ?? [],
-    missions: missions.data ?? [],
-    steps: steps.data ?? [],
-    sleep: sleep.data ?? [],
-    protocolDays: protocol.data ?? [],
-    stepGoal: profile.data?.step_goal ?? 10000,
-  });
-  const score = averageScore(pillars);
-  const streak = computeStreak(missionsWeek.data ?? []);
-  const list = missions.data ?? [];
-  const doneCount = list.filter((m) => m.done).length;
-
-  const week = lastDays(7).map((day) => {
-    const dayMissions = (missionsWeek.data ?? []).filter((m) => m.day === day);
-    const value = dayMissions.length
-      ? Math.round((dayMissions.filter((m) => m.done).length / dayMissions.length) * 100)
-      : 0;
-    return { day, label: weekdayLabel(day), score: value };
-  });
-
-  const weakest = [...pillars].sort((a, b) => a.score - b.score)[0];
-
-  return (
-    <AppShell>
-      <section className="rise surface-deep overflow-hidden">
-        <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.24em] opacity-70">
-              Olá, {profile.data?.display_name ?? "Nativo"}
-            </p>
-            <h1 className="mt-3 font-editorial text-2xl leading-snug text-primary-foreground">
-              Como você quer viver hoje?
-            </h1>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed opacity-80">
-              {weakest
-                ? `Seu ponto de atenção agora é ${weakest.label.toLowerCase()}. Uma ação simples já muda o dia.`
-                : "Registre seu dia e veja seu score se atualizar."}
-            </p>
-          </div>
-          <ScoreRing score={score} />
-        </div>
-        <img
-          src={heroImage}
-          alt="Mesa de madeira com comida de verdade sob luz da manhã"
-          width={1600}
-          height={1008}
-          className="h-40 w-full object-cover sm:h-48"
-        />
-      </section>
-
-      <section className="mt-6 grid grid-cols-2 gap-3">
-        <div className="surface flex items-center gap-3 p-4">
-          <Flame className="size-5 text-terracotta" strokeWidth={1.6} />
-          <div>
-            <p className="font-display text-lg font-semibold">{streak} dias</p>
-            <p className="text-xs text-muted-foreground">de sequência</p>
-          </div>
-        </div>
-        <div className="surface flex items-center gap-3 p-4">
-          <Sun className="size-5 text-gold" strokeWidth={1.6} />
-          <div>
-            <p className="font-display text-lg font-semibold">
-              {doneCount}/{list.length}
-            </p>
-            <p className="text-xs text-muted-foreground">missões de hoje</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="surface mt-6 p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg">Missões do dia</h2>
-          <span className="text-xs text-muted-foreground">Uma ação por vez</span>
-        </div>
-        {missions.isLoading ? (
-          <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
-        ) : (
-          <ul className="mt-4 space-y-2">
-            {list.map((m) => (
-              <li key={m.id}>
-                <button
-                  type="button"
-                  onClick={() => toggleMission.mutate({ id: m.id, done: !m.done })}
-                  className="flex w-full items-start gap-3 rounded-xl border border-border/70 bg-background/50 p-3 text-left transition-colors hover:border-leaf"
-                >
-                  <span
-                    className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border ${
-                      m.done ? "border-success bg-success" : "border-border"
-                    }`}
-                  >
-                    {m.done ? (
-                      <svg viewBox="0 0 24 24" className="size-3 stroke-primary-foreground" fill="none">
-                        <path d="M5 13l4 4L19 7" strokeWidth={3} strokeLinecap="round" />
-                      </svg>
-                    ) : null}
-                  </span>
-                  <span>
-                    <span
-                      className={`block text-sm font-medium ${
-                        m.done ? "text-muted-foreground line-through" : "text-foreground"
-                      }`}
-                    >
-                      {m.title}
-                    </span>
-                    <span className="mt-1 block text-xs text-muted-foreground">{m.detail}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="surface mt-6 p-5">
-        <h2 className="text-lg">Seus pilares</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          O score orienta, não julga. Ele mostra onde vale colocar atenção.
-        </p>
-        <div className="mt-2 divide-y divide-border/60">
-          {pillars.map((p) => (
-            <PillarBar key={p.key} label={p.label} score={p.score} note={p.note} />
-          ))}
-        </div>
-      </section>
-
-      <section className="surface mt-6 p-5">
-        <h2 className="text-lg">Evolução da semana</h2>
-        <div className="mt-5 flex h-32 items-end gap-2">
-          {week.map((d) => (
-            <div key={d.day} className="flex flex-1 flex-col items-center gap-2">
-              <div
-                className="w-full rounded-t-lg bg-leaf/80"
-                style={{ height: `${Math.max(d.score, 2)}%` }}
-                aria-label={`${d.label}: ${d.score}`}
-              />
-              <span className="text-[11px] text-muted-foreground">{d.label}</span>
-            </div>
-          ))}
-        </div>
-        <p className="mt-4 font-editorial text-sm text-accent">
-          "Sua evolução acontece na consistência."
-        </p>
-      </section>
-
-      <section className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Link
-          to="/registro"
-          className="surface flex items-center justify-between p-5 transition-transform hover:-translate-y-0.5"
-        >
-          <span className="flex items-center gap-3">
-            <Camera className="size-5 text-leaf" strokeWidth={1.6} />
-            <span className="text-sm font-medium">Registrar refeição</span>
-          </span>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/dieta"
-          className="surface flex items-center justify-between p-5 transition-transform hover:-translate-y-0.5"
-        >
-          <span className="flex items-center gap-3">
-            <Salad className="size-5 text-leaf" strokeWidth={1.6} />
-            <span className="text-sm font-medium">Ver sua dieta do dia</span>
-          </span>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/corpo"
-          className="surface flex items-center justify-between p-5 transition-transform hover:-translate-y-0.5"
-        >
-          <span className="flex items-center gap-3">
-            <Sun className="size-5 text-gold" strokeWidth={1.6} />
-            <span className="text-sm font-medium">Sol, passos e sono</span>
-          </span>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </Link>
-        <Link
-          to="/protocolo"
-          className="surface flex items-center justify-between p-5 transition-transform hover:-translate-y-0.5"
-        >
-          <span className="text-sm font-medium">
-            Protocolo Nativo · {(protocol.data ?? []).length}/30 dias
-          </span>
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </Link>
-      </section>
-    </AppShell>
-  );
+  return <AppShell>
+    <header className="mb-4"><p className="text-sm text-muted-foreground">Olá, {firstName(profile.data?.display_name)}</p><h1 className="mt-1 text-3xl">O que você tem para hoje</h1></header>
+    <section className="surface-deep rise overflow-hidden"><div className="grid items-center gap-4 p-5 sm:grid-cols-[1fr_auto]"><div><p className="text-xs uppercase tracking-[0.12em] opacity-75">Próxima ação</p><h2 className="mt-2 font-editorial text-xl">{next.text}</h2><p className="mt-2 text-sm opacity-80">{stateLabel}. Ausência de registro não reduz seu progresso.</p><Link to={next.href} className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary-foreground px-4 text-sm font-semibold text-primary">Começar agora <ArrowRight className="size-4"/></Link></div><ScoreRing score={score}/></div><img src={heroImage} alt="Comida de verdade em uma rotina iluminada pela manhã" width={1600} height={1008} className="h-20 w-full object-cover sm:h-24"/></section>
+    <section className="mt-5 grid grid-cols-3 gap-2"><div className="surface p-3"><p className="text-lg font-semibold">{score ?? "—"}{score === null ? "" : "%"}</p><p className="text-[11px] text-muted-foreground">progresso registrado</p></div><div className="surface p-3"><p className="text-lg font-semibold">{plural(streak, "dia")}</p><p className="text-[11px] text-muted-foreground">sequência</p></div><Link to="/protocolo" className="surface p-3"><p className="text-lg font-semibold">{protocolDays}/30</p><p className="text-[11px] text-muted-foreground">protocolo</p></Link></section>
+    <section className="surface mt-5 p-5"><div className="flex items-center justify-between"><h2 className="text-lg">Missões do dia</h2><span className="text-xs text-muted-foreground">{completed.length}/{list.length}</span></div>{missions.isLoading ? <p className="mt-4 text-sm text-muted-foreground">Carregando…</p> : <><ul className="mt-4 space-y-2">{pending.map((m) => <li key={m.id}><button disabled={toggle.isPending} onClick={() => toggle.mutate({ id: m.id, done: true }, { onSuccess: () => toast.success("Missão concluída."), onError: () => toast.error("Não foi possível salvar. Tente novamente.") })} className="flex min-h-12 w-full items-start gap-3 rounded-lg border border-border bg-background/50 p-3 text-left"><span className="mt-0.5 size-5 shrink-0 rounded-full border border-border"/><span><span className="block text-sm font-medium">{m.title}</span><span className="mt-1 block text-xs text-muted-foreground">{m.detail}</span></span></button></li>)}</ul>{completed.length ? <details className="mt-3"><summary className="cursor-pointer text-xs font-medium text-muted-foreground">Concluídas ({completed.length})</summary><ul className="mt-2 space-y-2">{completed.map((m) => <li key={m.id}><button onClick={() => toggle.mutate({ id: m.id, done: false }, { onSuccess: () => toast.success("Missão desmarcada.") })} className="flex w-full items-center gap-3 rounded-lg border border-success/40 bg-success/10 p-3 text-left text-sm"><span className="flex size-5 items-center justify-center rounded-full bg-success"><Check className="size-3"/></span><span className="line-through">{m.title}</span></button></li>)}</ul></details> : null}</> }</section>
+    <section className="surface mt-5 p-5"><h2 className="text-lg">Evolução recente</h2><p className="mt-1 text-xs text-muted-foreground">Percentual de missões registradas como concluídas em cada dia.</p><div className="mt-5 flex h-28 items-end gap-2">{week.map((d) => <div key={d.day} className="flex flex-1 flex-col items-center gap-2"><div className={`w-full rounded-t ${d.score === null ? "bg-border" : "bg-leaf/80"}`} style={{ height: d.score === null ? 3 : `${Math.max(d.score * .75, 4)}px` }}/><span className="text-[10px] text-muted-foreground">{d.label}</span></div>)}</div></section>
+    <section className="surface mt-5 p-5"><h2 className="text-lg">Seus pilares</h2><p className="mt-1 text-xs text-muted-foreground">O percentual considera somente pilares com dados. Refeições, passos, último sono e missões têm o mesmo peso; unidades não são somadas entre si.</p><div className="mt-3 divide-y divide-border">{pillars.map((p) => <div key={p.key} className="grid grid-cols-[1fr_auto] items-center gap-3"><PillarBar label={p.label} score={p.score} note={p.note}/><Link to={p.href} className="rounded-lg border border-border px-3 py-2 text-xs font-medium">Abrir</Link></div>)}</div></section>
+    <section className="mt-5 grid gap-3 sm:grid-cols-2"><Link to="/dieta" className="surface flex items-center justify-between p-4"><span className="flex items-center gap-3"><Salad className="size-5 text-leaf"/>Plano e refeições</span><ArrowRight className="size-4"/></Link><Link to="/corpo" className="surface flex items-center justify-between p-4"><span className="flex items-center gap-3"><Sun className="size-5 text-gold"/>UV, passos e sono</span><ArrowRight className="size-4"/></Link></section>
+  </AppShell>;
 }

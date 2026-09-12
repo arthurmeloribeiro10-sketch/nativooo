@@ -7,33 +7,40 @@ const inputSchema = z.object({
   weightKg: z.number().min(25).max(300),
   heightCm: z.number().min(100).max(250),
   goal: z.string().max(120).optional(),
+  activityLevel: z.string().max(120).optional(),
+  preferences: z.string().max(500).optional(),
+  restrictions: z.string().max(500).optional(),
+  includeFoods: z.string().max(500).optional(),
+  avoidFoods: z.string().max(500).optional(),
+  mealCount: z.number().int().min(1).max(10),
+  prepTime: z.string().max(120).optional(),
   startTime: z.string().max(10).optional(),
   notes: z.string().max(500).optional(),
 });
 
-export type JungleMeal = {
+export type DietMeal = {
   time_label: string;
   name: string;
   items: string[];
   kcal: number;
 };
 
-export type JungleDiet = {
-  meals: JungleMeal[];
+export type DietPlan = {
+  meals: DietMeal[];
   summary: string;
   kcalTotal: number;
 };
 
-export const generateJungleDiet = createServerFn({ method: "POST" })
+export const generateDietPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => inputSchema.parse(input))
-  .handler(async ({ data }): Promise<JungleDiet> => {
+  .handler(async ({ data }): Promise<DietPlan> => {
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("IA indisponível no momento.");
 
-    const prompt = `Monte uma dieta no estilo Ray Peat (pró-metabólica: frutas maduras e sucos de fruta, leite e derivados, queijos, ovos, carne vermelha, frutos do mar, batata, cenoura crua, mel, açúcar de fontes naturais, sal a gosto, café com leite; evitar óleos de semente, grãos integrais em excesso e vegetais crucíferos crus) para uma pessoa de ${data.weightKg} kg e ${data.heightCm} cm.${
+    const prompt = `Crie um plano alimentar inspirado na abordagem pró-metabólica associada a Ray Peat, explicada como preferência por alimentos de fácil digestão, proteína suficiente e fontes de energia regulares. Não trate essa abordagem como consenso médico. Use ingredientes brasileiros acessíveis para uma pessoa de ${data.weightKg} kg e ${data.heightCm} cm.${
       data.goal ? ` Objetivo: ${data.goal}.` : ""
-    } Use 4 a 5 refeições com horários em formato "07h30".${
+    } Atividade física: ${data.activityLevel || "não informada"}. Preferências: ${data.preferences || "não informadas"}. Restrições: ${data.restrictions || "não informadas"}. Incluir: ${data.includeFoods || "sem pedido específico"}. Evitar: ${data.avoidFoods || "sem pedido específico"}. Tempo para preparo: ${data.prepTime || "não informado"}. Use exatamente ${data.mealCount} refeições, com horários em formato "07h30".${
       data.startTime ? ` A primeira refeição deve começar às ${data.startTime} e as demais devem seguir a partir desse horário.` : ""
     }${
       data.notes ? ` Observações e pedidos da pessoa (respeite-os): ${data.notes}.` : ""
@@ -90,9 +97,14 @@ export const generateJungleDiet = createServerFn({ method: "POST" })
       }),
     });
 
-    if (res.status === 429) throw new Error("Muitos pedidos agora. Tente de novo em instantes.");
-    if (res.status === 402) throw new Error("Créditos de IA esgotados.");
-    if (!res.ok) throw new Error("Não consegui montar a dieta agora.");
+    if (!res.ok) {
+      const failure = (await res.json().catch(() => null)) as { message?: string } | null;
+      if (res.status === 429) throw new Error(failure?.message || "Muitos pedidos agora. Aguarde um instante e tente novamente.");
+      if (res.status === 402) throw new Error(failure?.message || "Os créditos de IA acabaram. O responsável pelo app precisa adicionar créditos.");
+      if (res.status === 403) throw new Error(failure?.message || "A IA está bloqueada para este espaço. Peça ao responsável para revisar a configuração.");
+      if (res.status === 401) throw new Error("A IA não está configurada corretamente.");
+      throw new Error(failure?.message || "Não consegui montar a dieta agora.");
+    }
 
     const json = (await res.json()) as {
       choices?: { message?: { tool_calls?: { function?: { arguments?: string } }[] } }[];
@@ -108,11 +120,11 @@ export const generateJungleDiet = createServerFn({ method: "POST" })
             z.object({
               time_label: z.string(),
               name: z.string(),
-              items: z.array(z.string()),
-              kcal: z.number(),
+              items: z.array(z.string().max(160)).min(1).max(12),
+              kcal: z.number().min(0).max(3000),
             }),
           )
-          .min(1),
+          .min(1).max(10),
       })
       .parse(JSON.parse(args));
 

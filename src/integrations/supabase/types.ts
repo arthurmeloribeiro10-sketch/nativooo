@@ -38,6 +38,89 @@ export type Database = {
         }
         Relationships: []
       }
+      diet_plan_meals: {
+        Row: {
+          created_at: string
+          id: string
+          items: string[]
+          kcal_estimate: number | null
+          name: string
+          plan_id: string
+          position: number
+          time_label: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          items?: string[]
+          kcal_estimate?: number | null
+          name: string
+          plan_id: string
+          position: number
+          time_label?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          items?: string[]
+          kcal_estimate?: number | null
+          name?: string
+          plan_id?: string
+          position?: number
+          time_label?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diet_plan_meals_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diet_plans: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          preferences: Json
+          source: string
+          summary: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          preferences?: Json
+          source: string
+          summary?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          preferences?: Json
+          source?: string
+          summary?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meals: {
         Row: {
           created_at: string
@@ -46,9 +129,13 @@ export type Database = {
           id: string
           items: string[]
           kcal: number
+          kcal_estimated: boolean
           name: string
           note: string | null
+          origin: string
+          plan_id: string | null
           time_label: string
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -58,9 +145,13 @@ export type Database = {
           id?: string
           items?: string[]
           kcal?: number
+          kcal_estimated?: boolean
           name: string
           note?: string | null
+          origin?: string
+          plan_id?: string | null
           time_label?: string
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -70,12 +161,24 @@ export type Database = {
           id?: string
           items?: string[]
           kcal?: number
+          kcal_estimated?: boolean
           name?: string
           note?: string | null
+          origin?: string
+          plan_id?: string | null
           time_label?: string
+          updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "meals_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "diet_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       missions: {
         Row: {
@@ -141,25 +244,61 @@ export type Database = {
       }
       profiles: {
         Row: {
+          activity_level: string | null
           created_at: string
+          diet_goal: string | null
           display_name: string
+          food_preferences: string | null
+          food_restrictions: string | null
+          foods_avoid: string | null
+          foods_include: string | null
+          height_cm: number | null
           id: string
+          meal_goal: number
+          preferred_start_time: string | null
+          prep_time: string | null
           step_goal: number
+          timezone: string
           updated_at: string
+          weight_kg: number | null
         }
         Insert: {
+          activity_level?: string | null
           created_at?: string
+          diet_goal?: string | null
           display_name?: string
+          food_preferences?: string | null
+          food_restrictions?: string | null
+          foods_avoid?: string | null
+          foods_include?: string | null
+          height_cm?: number | null
           id: string
+          meal_goal?: number
+          preferred_start_time?: string | null
+          prep_time?: string | null
           step_goal?: number
+          timezone?: string
           updated_at?: string
+          weight_kg?: number | null
         }
         Update: {
+          activity_level?: string | null
           created_at?: string
+          diet_goal?: string | null
           display_name?: string
+          food_preferences?: string | null
+          food_restrictions?: string | null
+          foods_avoid?: string | null
+          foods_include?: string | null
+          height_cm?: number | null
           id?: string
+          meal_goal?: number
+          preferred_start_time?: string | null
+          prep_time?: string | null
           step_goal?: number
+          timezone?: string
           updated_at?: string
+          weight_kg?: number | null
         }
         Relationships: []
       }
@@ -240,6 +379,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_diet_plan: {
+        Args: {
+          _day: string
+          _meals: Json
+          _name: string
+          _preferences: Json
+          _source: string
+          _summary: string
+        }
+        Returns: string
+      }
       community_ranking: {
         Args: never
         Returns: {
