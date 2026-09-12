@@ -7,6 +7,6 @@
 - [x] Reorganize home and pillar actions
 - [x] Improve community, navigation, pluralization, and responsiveness
 - [x] Verify data isolation, persistence, error states, day rollover, mobile, and desktop
-- [ ] Calculate diet targets from saved weight, height, age, sex, activity, and goal
-- [ ] Add automatic Apple Health connection architecture for health metrics
-- [ ] Include imported health data safely in score and recommendations
+- [x] Calculate diet targets from saved weight, height, age, sex, activity, and goal
+- [x] Add automatic Apple Health connection architecture for health metrics
+- [x] Include imported steps and sleep safely in score; keep glucose and pressure contextual
