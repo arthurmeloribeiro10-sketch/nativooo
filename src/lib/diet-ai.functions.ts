@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { calculateEnergyTarget } from "@/lib/metabolic";
 
 const inputSchema = z.object({
   weightKg: z.number().min(25).max(300),
@@ -34,11 +35,31 @@ export type DietPlan = {
 export const generateDietPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => inputSchema.parse(input))
-  .handler(async ({ data }): Promise<DietPlan> => {
+  .handler(async ({ data, context }): Promise<DietPlan> => {
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("IA indisponível no momento.");
 
-    const prompt = `Crie um plano alimentar inspirado na abordagem pró-metabólica associada a Ray Peat, explicada como preferência por alimentos de fácil digestão, proteína suficiente e fontes de energia regulares. Não trate essa abordagem como consenso médico. Use ingredientes brasileiros acessíveis para uma pessoa de ${data.weightKg} kg e ${data.heightCm} cm.${
+    const { data: savedProfile, error: profileError } = await context.supabase
+      .from("profiles")
+      .select("weight_kg,height_cm,birth_date,metabolic_sex,activity_level,diet_goal")
+      .eq("id", context.userId)
+      .single();
+    if (profileError) throw profileError;
+    const weightKg = Number(savedProfile.weight_kg);
+    const heightCm = Number(savedProfile.height_cm);
+    if (!weightKg || !heightCm || !savedProfile.birth_date || !savedProfile.metabolic_sex || !savedProfile.activity_level) {
+      throw new Error("Complete peso, altura, nascimento, sexo para cálculo e atividade antes de gerar o plano.");
+    }
+    const energy = calculateEnergyTarget({
+      weightKg,
+      heightCm,
+      birthDate: savedProfile.birth_date,
+      metabolicSex: savedProfile.metabolic_sex as "female" | "male",
+      activityLevel: savedProfile.activity_level,
+      goal: savedProfile.diet_goal ?? data.goal,
+    });
+
+    const prompt = `Crie um plano alimentar inspirado na abordagem pró-metabólica associada a Ray Peat, explicada como preferência por alimentos de fácil digestão, proteína suficiente e fontes de energia regulares. Não trate essa abordagem como consenso médico. Use ingredientes brasileiros acessíveis para uma pessoa de ${weightKg} kg, ${heightCm} cm e ${energy.age} anos. A meta estimada é ${energy.targetKcal} kcal/dia, calculada pela fórmula ${energy.formula}, com fator de atividade ${energy.activityFactor} e ajuste de objetivo ${energy.goalAdjustment} kcal. Distribua as refeições para totalizar entre 90% e 110% da meta.${
       data.goal ? ` Objetivo: ${data.goal}.` : ""
     } Atividade física: ${data.activityLevel || "não informada"}. Preferências: ${data.preferences || "não informadas"}. Restrições: ${data.restrictions || "não informadas"}. Incluir: ${data.includeFoods || "sem pedido específico"}. Evitar: ${data.avoidFoods || "sem pedido específico"}. Tempo para preparo: ${data.prepTime || "não informado"}. Use exatamente ${data.mealCount} refeições, com horários em formato "07h30".${
       data.startTime ? ` A primeira refeição deve começar às ${data.startTime} e as demais devem seguir a partir desse horário.` : ""
@@ -128,6 +149,11 @@ export const generateDietPlan = createServerFn({ method: "POST" })
           .min(1).max(10),
       })
       .parse(JSON.parse(args));
+
+    const total = parsed.meals.reduce((sum, meal) => sum + meal.kcal, 0);
+    if (total < energy.targetKcal * 0.85 || total > energy.targetKcal * 1.15) {
+      throw new Error("A prévia ficou fora da meta calculada. Gere novamente para receber um plano coerente.");
+    }
 
     return {
       meals: parsed.meals.map((m) => ({ ...m, kcal: Math.round(m.kcal) })),
