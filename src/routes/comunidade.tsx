@@ -21,6 +21,8 @@ export const Route = createFileRoute("/comunidade")({
         property: "og:description",
         content: "Consistência, sequência e participação: o ranking celebra hábito, não número.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ComunidadePage,
@@ -145,7 +147,7 @@ function ComunidadePage() {
        <section className="surface mt-6 p-5">
          <h2 className="text-lg">Ranking de consistência</h2>
          <p className="mt-1 text-xs text-muted-foreground">Histórico acumulado. Ordem: dias do protocolo; em empate, missões concluídas.</p>
-        <ul className="mt-4 divide-y divide-border/60">
+         {ranking.isLoading ? <p className="mt-4 text-sm text-muted-foreground">Carregando ranking…</p> : ranking.isError ? <div className="mt-4"><p className="text-sm text-muted-foreground">Não foi possível carregar o ranking.</p><button onClick={() => ranking.refetch()} className="mt-2 text-sm font-medium text-primary">Tentar novamente</button></div> : <ul className="mt-4 divide-y divide-border/60">
           {(ranking.data ?? []).map((r, i) => (
             <li
               key={r.user_id}
@@ -166,7 +168,7 @@ function ComunidadePage() {
           {!ranking.isLoading && (ranking.data ?? []).length === 0 ? (
             <li className="py-3 text-sm text-muted-foreground">Ainda sem participantes.</li>
           ) : null}
-        </ul>
+         </ul>}
       </section>
 
     </AppShell>

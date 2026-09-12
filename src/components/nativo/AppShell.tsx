@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { Home, ListChecks, Salad, Sun, Users, User, LogOut } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 
@@ -16,10 +17,21 @@ const nav = [
 export function AppShell({ children }: { children: ReactNode }) {
   const { session, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/auth" });
   }, [loading, session, navigate]);
+
+  useEffect(() => {
+    const now = new Date();
+    const nextDay = new Date(now);
+    nextDay.setHours(24, 0, 1, 0);
+    const timer = window.setTimeout(() => {
+      void queryClient.invalidateQueries();
+    }, nextDay.getTime() - now.getTime());
+    return () => window.clearTimeout(timer);
+  }, [queryClient]);
 
   if (loading || !session) {
     return (

@@ -38,6 +38,7 @@ export type MissionRow = {
   detail: string;
   pillar: string;
   done: boolean;
+  status: "pending" | "done" | "skipped";
 };
 
 export type MealRow = {
@@ -154,7 +155,7 @@ export function useMissions(userId: string | undefined) {
       const day = today();
       const { data, error } = await supabase
         .from("missions")
-        .select("id, day, title, detail, pillar, done")
+        .select("id, day, title, detail, pillar, done, status")
         .eq("user_id", userId ?? "")
         .eq("day", day)
         .order("created_at", { ascending: true });
@@ -164,7 +165,7 @@ export function useMissions(userId: string | undefined) {
       const { data: seeded, error: seedError } = await supabase
         .from("missions")
         .upsert(defaultMissions.map((m) => ({ ...m, user_id: userId ?? "", day })), { onConflict: "user_id,day,title", ignoreDuplicates: true })
-        .select("id, day, title, detail, pillar, done");
+        .select("id, day, title, detail, pillar, done, status");
       if (seedError) throw seedError;
       return (seeded ?? []) as MissionRow[];
     },
@@ -174,15 +175,15 @@ export function useMissions(userId: string | undefined) {
 export function useToggleMission(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, done }: { id: string; done: boolean }) => {
-      const { error } = await supabase.from("missions").update({ done }).eq("id", id);
+    mutationFn: async ({ id, status }: { id: string; status: MissionRow["status"] }) => {
+      const { error } = await supabase.from("missions").update({ status }).eq("id", id);
       if (error) throw error;
     },
-    onMutate: async ({ id, done }) => {
+    onMutate: async ({ id, status }) => {
       const key = ["missions", userId, today()];
       await qc.cancelQueries({ queryKey: key });
       const previous = qc.getQueryData<MissionRow[]>(key);
-      qc.setQueryData<MissionRow[]>(key, (old) => old?.map((m) => (m.id === id ? { ...m, done } : m)));
+      qc.setQueryData<MissionRow[]>(key, (old) => old?.map((m) => (m.id === id ? { ...m, status, done: status === "done" } : m)));
       return { previous, key };
     },
     onError: (_error, _vars, context) => {
@@ -198,14 +199,15 @@ export function useToggleMission(userId: string | undefined) {
 export function useAddMission(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (mission: { title: string; detail?: string; pillar?: string; done?: boolean }) => {
+    mutationFn: async (mission: { title: string; detail?: string; pillar?: string; status?: MissionRow["status"] }) => {
       const { error } = await supabase.from("missions").insert({
         user_id: userId!,
         day: today(),
         title: mission.title,
         detail: mission.detail ?? "",
         pillar: mission.pillar ?? "habitos",
-        done: mission.done ?? false,
+        status: mission.status ?? "pending",
+        done: mission.status === "done",
       });
       if (error) throw error;
     },
@@ -238,7 +240,7 @@ export function useMissionsWeek(userId: string | undefined) {
       const days = lastDays(7);
       const { data, error } = await supabase
         .from("missions")
-        .select("id, day, title, detail, pillar, done")
+        .select("id, day, title, detail, pillar, done, status")
         .eq("user_id", userId ?? "")
         .gte("day", days[0]!)
         .lte("day", days[days.length - 1]!);
@@ -595,7 +597,7 @@ export function computePillars(input: {
   const pct = (v: number) => Math.max(0, Math.min(100, Math.round(v * 100)));
 
   const mealsDone = meals.filter((m) => m.done).length;
-  const alimentacao = meals.length ? pct(mealsDone / Math.max(mealGoal, meals.length)) : null;
+  const alimentacao = mealsDone ? pct(mealsDone / Math.max(mealGoal, mealsDone)) : null;
 
   const stepsToday = steps.find((s) => s.day === today());
   const movimento = stepsToday ? pct(stepsToday.steps / stepGoal) : null;
@@ -605,7 +607,8 @@ export function computePillars(input: {
 
   const byPillar = (p: string) => {
     const list = missions.filter((m) => m.pillar === p);
-    return list.length ? pct(list.filter((m) => m.done).length / list.length) : null;
+    const recorded = list.filter((m) => m.status !== "pending");
+    return recorded.length ? pct(recorded.filter((m) => m.status === "done").length / recorded.length) : null;
   };
 
   return [
@@ -613,7 +616,7 @@ export function computePillars(input: {
       key: "alimentacao",
       label: "Alimentação",
       score: alimentacao,
-      note: `${mealsDone} de ${meals.length} refeições registradas hoje.`,
+      note: mealsDone ? `${mealsDone} de ${mealGoal} refeições registradas hoje.` : "Nenhuma refeição registrada como realizada hoje.",
       href: "/dieta",
     },
     {

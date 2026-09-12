@@ -20,6 +20,8 @@ export const Route = createFileRoute("/protocolo")({
         property: "og:description",
         content: "Comida real, sol, movimento, sono e presença em uma jornada guiada de 30 dias.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ProtocoloPage,
@@ -44,7 +46,8 @@ function ProtocoloPage() {
 
   const completed = protocol.data ?? [];
   const concluidos = completed.length;
-  const hoje = Math.min(concluidos + 1, 30);
+  const primeiroPendente = Array.from({ length: 30 }, (_, i) => i + 1).find((day) => !completed.includes(day));
+  const hoje = primeiroPendente ?? 30;
   const focoHoje = focos[(hoje - 1) % focos.length] ?? focos[0]!;
 
   return (
@@ -102,7 +105,7 @@ function ProtocoloPage() {
       <section className="surface mt-6 p-5">
         <h2 className="text-lg">Jornada completa</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Toque em um dia concluído para desmarcá-lo.
+          Toque em um dia concluído para desmarcá-lo. O primeiro dia pendente fica disponível para retomar.
         </p>
         <div className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-6">
           {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => {

@@ -98,6 +98,7 @@ export const getCommunityRanking = createServerFn({ method: "GET" })
         protocol_days: protocolCounts.get(profile.id) ?? 0,
         missions_done: missionCounts.get(profile.id) ?? 0,
       }))
+      .filter((profile) => profile.protocol_days > 0 || profile.missions_done > 0)
       .sort(
         (a, b) =>
           b.protocol_days - a.protocol_days || b.missions_done - a.missions_done,

@@ -32,9 +32,11 @@ function uvLevel(uv: number) {
 }
 
 function rangeFor(rows: { time: string; uv: number }[]) {
-  if (!rows.length) return null;
+  const first = rows.at(0);
+  const last = rows.at(-1);
+  if (!first || !last) return null;
   const fmt = (time: string) => time.slice(11, 16);
-  return `${fmt(rows[0].time)}–${fmt(rows[rows.length - 1].time)}`;
+  return `${fmt(first.time)}–${fmt(last.time)}`;
 }
 
 async function fetchSun(lat: number, lon: number): Promise<SunData> {
