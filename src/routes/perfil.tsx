@@ -53,11 +53,13 @@ function PerfilPage() {
 
   const [nome, setNome] = useState("");
   const [meta, setMeta] = useState("10000");
+  const [metaRefeicoes, setMetaRefeicoes] = useState("4");
 
   useEffect(() => {
     if (profile.data) {
       setNome(profile.data.display_name);
       setMeta(String(profile.data.step_goal));
+      setMetaRefeicoes(String(profile.data.meal_goal));
     }
   }, [profile.data?.id]);
 
@@ -66,8 +68,8 @@ function PerfilPage() {
     missions: missions.data ?? [],
     steps: steps.data ?? [],
     sleep: sleep.data ?? [],
-    protocolDays: protocol.data ?? [],
     stepGoal: profile.data?.step_goal ?? 10000,
+    mealGoal: profile.data?.meal_goal ?? 4,
   });
   const score = averageScore(pillars);
   const streak = computeStreak(missionsWeek.data ?? []);
@@ -90,8 +92,8 @@ function PerfilPage() {
       <section className="surface grid grid-cols-3 divide-x divide-border/60 p-5 text-center">
         <div>
           <Leaf className="mx-auto size-5 text-leaf" strokeWidth={1.6} />
-          <p className="mt-2 font-display text-lg font-semibold">{score}</p>
-          <p className="text-[11px] text-muted-foreground">Nativo Score</p>
+           <p className="mt-2 font-display text-lg font-semibold">{score ?? "—"}</p>
+           <p className="text-[11px] text-muted-foreground">Progresso registrado</p>
         </div>
         <div>
           <Flame className="mx-auto size-5 text-terracotta" strokeWidth={1.6} />
@@ -125,6 +127,8 @@ function PerfilPage() {
           onChange={(e) => setNome(e.target.value)}
           className="mt-2 w-full rounded-2xl border border-input bg-background/70 px-4 py-3 text-sm outline-none focus:border-leaf"
         />
+        <label htmlFor="meta-refeicoes" className="mt-4 block text-sm font-medium">Quantidade planejada de refeições</label>
+        <input id="meta-refeicoes" type="number" min={1} max={10} value={metaRefeicoes} onChange={(e) => setMetaRefeicoes(e.target.value)} className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm" />
         <label htmlFor="meta" className="mt-4 block text-sm font-medium">
           Meta diária de passos
         </label>
@@ -141,7 +145,7 @@ function PerfilPage() {
           type="button"
           onClick={() =>
             updateProfile.mutate(
-              { display_name: nome.trim() || "Nativo", step_goal: Number(meta) || 10000 },
+              { display_name: nome.trim() || "Nativo", step_goal: Number(meta) || 10000, meal_goal: Number(metaRefeicoes) || 4, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
               { onSuccess: () => toast.success("Perfil atualizado.") },
             )
           }
