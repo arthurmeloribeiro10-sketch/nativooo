@@ -1,8 +1,8 @@
-export function ScoreRing({ score, size = 148 }: { score: number; size?: number }) {
+export function ScoreRing({ score, size = 112 }: { score: number | null; size?: number }) {
   const stroke = 12;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - score / 100);
+  const offset = circumference * (1 - (score ?? 0) / 100);
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -28,8 +28,8 @@ export function ScoreRing({ score, size = 148 }: { score: number; size?: number 
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-4xl font-bold leading-none">{score}</span>
-        <span className="mt-1 text-[11px] uppercase tracking-[0.2em] opacity-70">de 100</span>
+        <span className="font-display text-3xl font-bold leading-none">{score ?? "—"}</span>
+        <span className="mt-1 text-[10px] uppercase tracking-[0.12em] opacity-70">{score === null ? "sem dados" : "registrado"}</span>
       </div>
     </div>
   );
