@@ -65,6 +65,8 @@ export type ProfileRow = {
   timezone: string;
   weight_kg: number | null;
   height_cm: number | null;
+  birth_date: string | null;
+  metabolic_sex: "female" | "male" | null;
   diet_goal: string | null;
   activity_level: string | null;
   food_preferences: string | null;
@@ -118,7 +120,7 @@ export function useProfile(userId: string | undefined) {
     queryFn: async (): Promise<ProfileRow> => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time")
+        .select("id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, birth_date, metabolic_sex, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time")
         .eq("id", userId ?? "")
         .maybeSingle();
       if (error) throw error;
@@ -126,7 +128,7 @@ export function useProfile(userId: string | undefined) {
       const { data: created, error: insertError } = await supabase
         .from("profiles")
         .upsert({ id: userId ?? "", timezone: browserTimeZone() }, { onConflict: "id" })
-        .select("id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time")
+        .select("id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, birth_date, metabolic_sex, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time")
         .single();
       if (insertError) throw insertError;
       return created as ProfileRow;
@@ -445,6 +447,24 @@ export function useSaveSteps(userId: string | undefined) {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["steps", userId] }),
+  });
+}
+
+export type HealthConnectionRow = { id: string; status: string; permissions: string[]; device_name: string | null; last_synced_at: string | null; last_error: string | null };
+export type HealthSampleRow = { id: string; metric_type: string; value: number; unit: string; measured_at: string; source_name: string; source_device: string | null };
+
+export function useHealthData(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["health-data", userId], enabled: !!userId,
+    queryFn: async (): Promise<{ connection: HealthConnectionRow | null; samples: HealthSampleRow[] }> => {
+      const [connectionResult, samplesResult] = await Promise.all([
+        supabase.from("health_connections").select("id,status,permissions,device_name,last_synced_at,last_error").eq("user_id", userId ?? "").eq("provider", "apple_health").maybeSingle(),
+        supabase.from("health_samples").select("id,metric_type,value,unit,measured_at,source_name,source_device").eq("user_id", userId ?? "").gte("measured_at", new Date(Date.now() - 7 * 86400000).toISOString()).order("measured_at", { ascending: false }),
+      ]);
+      if (connectionResult.error) throw connectionResult.error;
+      if (samplesResult.error) throw samplesResult.error;
+      return { connection: connectionResult.data, samples: (samplesResult.data ?? []).map((s) => ({ ...s, value: Number(s.value) })) };
+    },
   });
 }
 
