@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 
 import { supabase } from "@/integrations/supabase/client";
+import { getCommunityFeed, getCommunityRanking } from "@/lib/community.functions";
 
 export const TZ = "America/Sao_Paulo";
 
@@ -429,58 +431,11 @@ export type PostView = {
 };
 
 export function usePosts(userId: string | undefined) {
+  const fetchCommunityFeed = useServerFn(getCommunityFeed);
   return useQuery({
     queryKey: ["posts", userId],
     enabled: !!userId,
-    queryFn: async (): Promise<PostView[]> => {
-      const { data: posts, error } = await supabase
-        .from("community_posts")
-        .select("id, body, created_at, user_id, image_path")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      const rows = posts ?? [];
-      if (rows.length === 0) return [];
-
-      const ids = [...new Set(rows.map((p) => p.user_id as string))];
-      const paths = rows
-        .map((p) => (p as { image_path: string | null }).image_path)
-        .filter((p): p is string => !!p);
-
-      const [{ data: profiles }, { data: reactions }, signed] = await Promise.all([
-        supabase.from("profiles").select("id, display_name").in("id", ids),
-        supabase
-          .from("post_reactions")
-          .select("post_id, user_id")
-          .in(
-            "post_id",
-            rows.map((p) => p.id as string),
-          ),
-        paths.length
-          ? supabase.storage.from("community-photos").createSignedUrls(paths, 3600)
-          : Promise.resolve({ data: [] as { path: string | null; signedUrl: string }[] }),
-      ]);
-
-      const urls = new Map(
-        (signed.data ?? []).map((s) => [s.path as string, s.signedUrl as string]),
-      );
-      const names = new Map((profiles ?? []).map((p) => [p.id as string, p.display_name as string]));
-      const all = reactions ?? [];
-
-      return rows.map((p) => {
-        const path = (p as { image_path: string | null }).image_path;
-        return {
-          id: p.id as string,
-          body: p.body as string,
-          created_at: p.created_at as string,
-          user_id: p.user_id as string,
-          author: names.get(p.user_id as string) ?? "Nativo",
-          reactions: all.filter((r) => r.post_id === p.id).length,
-          reacted: all.some((r) => r.post_id === p.id && r.user_id === userId),
-          image_url: path ? (urls.get(path) ?? null) : null,
-        };
-      });
-    },
+    queryFn: async (): Promise<PostView[]> => fetchCommunityFeed(),
   });
 }
 
@@ -546,14 +501,12 @@ export type RankingRow = {
   missions_done: number;
 };
 
-export function useRanking() {
+export function useRanking(userId: string | undefined) {
+  const fetchCommunityRanking = useServerFn(getCommunityRanking);
   return useQuery({
-    queryKey: ["ranking"],
-    queryFn: async (): Promise<RankingRow[]> => {
-      const { data, error } = await supabase.rpc("community_ranking");
-      if (error) throw error;
-      return (data ?? []) as RankingRow[];
-    },
+    queryKey: ["ranking", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<RankingRow[]> => fetchCommunityRanking(),
   });
 }
 
