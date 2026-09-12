@@ -55,8 +55,8 @@ export type MealRow = {
   kcal_estimated: boolean;
 };
 
-export type SleepRow = { id: string; day: string; hours: number; quality: number };
-export type StepRow = { id: string; day: string; steps: number };
+export type SleepRow = { id: string; day: string; hours: number; quality: number; source?: "manual" | "apple_health" };
+export type StepRow = { id: string; day: string; steps: number; source?: "manual" | "apple_health" };
 export type ProfileRow = {
   id: string;
   display_name: string;
@@ -65,6 +65,8 @@ export type ProfileRow = {
   timezone: string;
   weight_kg: number | null;
   height_cm: number | null;
+  birth_date: string | null;
+  metabolic_sex: "female" | "male" | null;
   diet_goal: string | null;
   activity_level: string | null;
   food_preferences: string | null;
@@ -118,7 +120,7 @@ export function useProfile(userId: string | undefined) {
     queryFn: async (): Promise<ProfileRow> => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time")
+        .select("id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, birth_date, metabolic_sex, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time")
         .eq("id", userId ?? "")
         .maybeSingle();
       if (error) throw error;
@@ -126,7 +128,7 @@ export function useProfile(userId: string | undefined) {
       const { data: created, error: insertError } = await supabase
         .from("profiles")
         .upsert({ id: userId ?? "", timezone: browserTimeZone() }, { onConflict: "id" })
-        .select("id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time")
+        .select("id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, birth_date, metabolic_sex, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time")
         .single();
       if (insertError) throw insertError;
       return created as ProfileRow;
@@ -388,15 +390,16 @@ export function useSleepWeek(userId: string | undefined) {
     enabled: !!userId,
     queryFn: async (): Promise<SleepRow[]> => {
       const days = lastDays(7);
-      const { data, error } = await supabase
-        .from("sleep_logs")
-        .select("id, day, hours, quality")
-        .eq("user_id", userId ?? "")
-        .gte("day", days[0]!)
-        .lte("day", days[days.length - 1]!)
-        .order("day", { ascending: true });
-      if (error) throw error;
-      return (data ?? []).map((r) => ({ ...r, hours: Number(r.hours) })) as SleepRow[];
+      const [manual, imported] = await Promise.all([
+        supabase.from("sleep_logs").select("id, day, hours, quality").eq("user_id", userId ?? "").gte("day", days[0]!).lte("day", days[days.length - 1]!).order("day", { ascending: true }),
+        supabase.from("health_samples").select("id,value,measured_at").eq("user_id", userId ?? "").eq("metric_type", "sleep_minutes").gte("measured_at", `${days[0]}T00:00:00Z`).order("measured_at", { ascending: true }),
+      ]);
+      if (manual.error) throw manual.error;
+      if (imported.error) throw imported.error;
+      const byDay = new Map<string, SleepRow>();
+      for (const sample of imported.data ?? []) { const day = sample.measured_at.slice(0, 10); const current = byDay.get(day); byDay.set(day, { id: current?.id ?? sample.id, day, hours: (current?.hours ?? 0) + Number(sample.value) / 60, quality: 75, source: "apple_health" }); }
+      for (const row of manual.data ?? []) byDay.set(row.day, { ...row, hours: Number(row.hours), source: "manual" });
+      return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
     },
   });
 }
@@ -422,15 +425,16 @@ export function useStepsWeek(userId: string | undefined) {
     enabled: !!userId,
     queryFn: async (): Promise<StepRow[]> => {
       const days = lastDays(7);
-      const { data, error } = await supabase
-        .from("step_logs")
-        .select("id, day, steps")
-        .eq("user_id", userId ?? "")
-        .gte("day", days[0]!)
-        .lte("day", days[days.length - 1]!)
-        .order("day", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as StepRow[];
+      const [manual, imported] = await Promise.all([
+        supabase.from("step_logs").select("id, day, steps").eq("user_id", userId ?? "").gte("day", days[0]!).lte("day", days[days.length - 1]!).order("day", { ascending: true }),
+        supabase.from("health_samples").select("id,value,measured_at").eq("user_id", userId ?? "").eq("metric_type", "steps").gte("measured_at", `${days[0]}T00:00:00Z`).order("measured_at", { ascending: true }),
+      ]);
+      if (manual.error) throw manual.error;
+      if (imported.error) throw imported.error;
+      const byDay = new Map<string, StepRow>();
+      for (const sample of imported.data ?? []) { const day = sample.measured_at.slice(0, 10); const current = byDay.get(day); byDay.set(day, { id: current?.id ?? sample.id, day, steps: (current?.steps ?? 0) + Math.round(Number(sample.value)), source: "apple_health" }); }
+      for (const row of manual.data ?? []) byDay.set(row.day, { ...row, source: "manual" });
+      return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
     },
   });
 }
@@ -445,6 +449,24 @@ export function useSaveSteps(userId: string | undefined) {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["steps", userId] }),
+  });
+}
+
+export type HealthConnectionRow = { id: string; status: string; permissions: string[]; device_name: string | null; last_synced_at: string | null; last_error: string | null };
+export type HealthSampleRow = { id: string; metric_type: string; value: number; unit: string; measured_at: string; source_name: string; source_device: string | null };
+
+export function useHealthData(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["health-data", userId], enabled: !!userId,
+    queryFn: async (): Promise<{ connection: HealthConnectionRow | null; samples: HealthSampleRow[] }> => {
+      const [connectionResult, samplesResult] = await Promise.all([
+        supabase.from("health_connections").select("id,status,permissions,device_name,last_synced_at,last_error").eq("user_id", userId ?? "").eq("provider", "apple_health").maybeSingle(),
+        supabase.from("health_samples").select("id,metric_type,value,unit,measured_at,source_name,source_device").eq("user_id", userId ?? "").gte("measured_at", new Date(Date.now() - 7 * 86400000).toISOString()).order("measured_at", { ascending: false }),
+      ]);
+      if (connectionResult.error) throw connectionResult.error;
+      if (samplesResult.error) throw samplesResult.error;
+      return { connection: connectionResult.data, samples: (samplesResult.data ?? []).map((s) => ({ ...s, value: Number(s.value) })) };
+    },
   });
 }
 

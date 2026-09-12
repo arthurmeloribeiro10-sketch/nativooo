@@ -56,12 +56,16 @@ function PerfilPage() {
   const [nome, setNome] = useState("");
   const [meta, setMeta] = useState("10000");
   const [metaRefeicoes, setMetaRefeicoes] = useState("4");
+  const [nascimento, setNascimento] = useState("");
+  const [sexoCalculo, setSexoCalculo] = useState<"" | "female" | "male">("");
 
   useEffect(() => {
     if (profile.data) {
       setNome(profile.data.display_name);
       setMeta(String(profile.data.step_goal));
       setMetaRefeicoes(String(profile.data.meal_goal));
+      setNascimento(profile.data.birth_date ?? "");
+      setSexoCalculo(profile.data.metabolic_sex ?? "");
     }
   }, [profile.data?.id]);
 
@@ -131,6 +135,11 @@ function PerfilPage() {
         />
         <label htmlFor="meta-refeicoes" className="mt-4 block text-sm font-medium">Quantidade planejada de refeições</label>
         <input id="meta-refeicoes" type="number" min={1} max={10} value={metaRefeicoes} onChange={(e) => setMetaRefeicoes(e.target.value)} className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm" />
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label htmlFor="nascimento" className="block text-sm font-medium">Data de nascimento<input id="nascimento" type="date" value={nascimento} onChange={(e) => setNascimento(e.target.value)} className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm" /></label>
+          <label htmlFor="sexo-calculo" className="block text-sm font-medium">Sexo usado no cálculo<select id="sexo-calculo" value={sexoCalculo} onChange={(e) => setSexoCalculo(e.target.value as "" | "female" | "male")} className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm"><option value="">Selecionar</option><option value="female">Feminino</option><option value="male">Masculino</option></select></label>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">Esses dados são privados e usados somente para estimar sua necessidade energética.</p>
         <label htmlFor="meta" className="mt-4 block text-sm font-medium">
           Meta diária de passos
         </label>
@@ -147,7 +156,7 @@ function PerfilPage() {
           type="button"
           onClick={() =>
             updateProfile.mutate(
-              { display_name: nome.trim() || "Nativo", step_goal: Number(meta) || 10000, meal_goal: Number(metaRefeicoes) || 4, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+              { display_name: nome.trim() || "Nativo", step_goal: Number(meta) || 10000, meal_goal: Number(metaRefeicoes) || 4, birth_date: nascimento || null, metabolic_sex: sexoCalculo || null, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
                { onSuccess: () => toast.success("Perfil atualizado."), onError: () => toast.error("Não foi possível salvar suas metas. Tente novamente.") },
             )
           }
