@@ -40,7 +40,7 @@ function ComunidadePage() {
   const { user } = useAuth();
   const userId = user?.id;
   const posts = usePosts(userId);
-  const ranking = useRanking();
+  const ranking = useRanking(userId);
   const { create, remove, react } = usePostMutations(userId);
   const [texto, setTexto] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
