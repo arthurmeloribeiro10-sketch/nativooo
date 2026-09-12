@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, MoreHorizontal, PenLine, RotateCcw } from "lucide-react";
+import { Check, MoreHorizontal, PenLine, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -132,15 +132,15 @@ function RegistroPage() {
         <div className="mt-4 flex flex-wrap gap-2">
           {habitos.map((h) => {
             const existente = missionList.find((m) => m.title === h.label);
-            const ativo = !!existente?.done;
+            const ativo = existente?.status === "done";
             return (
               <button
                 key={h.label}
                 type="button"
                  disabled={toggleMission.isPending || addMission.isPending}
                  onClick={() => {
-                  if (existente) toggleMission.mutate({ id: existente.id, done: !existente.done });
-                  else addMission.mutate({ title: h.label, pillar: h.pillar, done: true });
+                   if (existente) toggleMission.mutate({ id: existente.id, status: ativo ? "pending" : "done" });
+                   else addMission.mutate({ title: h.label, pillar: h.pillar, status: "done" });
                 }}
                 className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
                   ativo
@@ -159,29 +159,29 @@ function RegistroPage() {
        <section className="surface mt-6 p-5">
         <h2 className="text-lg">Missões do dia</h2>
          <h3 className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Pendentes</h3><ul className="mt-2 space-y-2">
-           {missionList.filter((m) => !m.done).map((m) => (
+           {missionList.filter((m) => m.status === "pending").map((m) => (
             <li key={m.id} className="flex items-center gap-3 rounded-xl border border-border/70 bg-background/50 p-3">
               <button
                 type="button"
-                onClick={() => toggleMission.mutate({ id: m.id, done: !m.done })}
+                 onClick={() => toggleMission.mutate({ id: m.id, status: "done" })}
                 className="flex flex-1 items-center gap-3 text-left"
               >
                 <span
                   className={`flex size-5 shrink-0 items-center justify-center rounded-full border ${
-                    m.done ? "border-success bg-success" : "border-border"
+                     "border-border"
                   }`}
                 >
-                  {m.done ? <Check className="size-3 text-primary-foreground" strokeWidth={3} /> : null}
                 </span>
-                <span className={`text-sm ${m.done ? "text-muted-foreground line-through" : ""}`}>
+                 <span className="text-sm">
                   {m.title}
                 </span>
               </button>
-               <details className="relative"><summary aria-label={`Opções de ${m.title}`} className="cursor-pointer list-none rounded-lg p-2 text-muted-foreground"><MoreHorizontal className="size-4"/></summary><button type="button" onClick={() => deleteMission.mutate(m.id, { onError: () => toast.error("Não foi possível remover.") })} className="absolute right-0 z-10 mt-1 rounded-lg border border-border bg-card px-3 py-2 text-xs text-terracotta shadow">Remover missão</button></details>
+                <button type="button" aria-label={`Marcar ${m.title} como não realizada`} onClick={() => toggleMission.mutate({ id: m.id, status: "skipped" })} className="rounded-lg p-2 text-muted-foreground" title="Não realizada"><X className="size-4"/></button><details className="relative"><summary aria-label={`Opções de ${m.title}`} className="cursor-pointer list-none rounded-lg p-2 text-muted-foreground"><MoreHorizontal className="size-4"/></summary><button type="button" onClick={() => deleteMission.mutate(m.id, { onError: () => toast.error("Não foi possível remover.") })} className="absolute right-0 z-10 mt-1 rounded-lg border border-border bg-card px-3 py-2 text-xs text-terracotta shadow">Remover missão</button></details>
             </li>
           ))}
         </ul>
-         {missionList.some((m) => m.done) ? <details className="mt-4"><summary className="cursor-pointer text-xs font-semibold text-muted-foreground">Concluídas ({missionList.filter((m) => m.done).length})</summary><ul className="mt-2 space-y-2">{missionList.filter((m) => m.done).map((m) => <li key={m.id}><button onClick={() => toggleMission.mutate({ id: m.id, done: false })} className="flex w-full items-center gap-3 rounded-lg border border-success/40 bg-success/10 p-3 text-left text-sm"><Check className="size-4"/><span className="line-through">{m.title}</span></button></li>)}</ul></details> : null}
+          {missionList.some((m) => m.status === "done") ? <details className="mt-4"><summary className="cursor-pointer text-xs font-semibold text-muted-foreground">Concluídas ({missionList.filter((m) => m.status === "done").length})</summary><ul className="mt-2 space-y-2">{missionList.filter((m) => m.status === "done").map((m) => <li key={m.id}><button onClick={() => toggleMission.mutate({ id: m.id, status: "pending" })} className="flex w-full items-center gap-3 rounded-lg border border-success/40 bg-success/10 p-3 text-left text-sm"><Check className="size-4"/><span className="line-through">{m.title}</span></button></li>)}</ul></details> : null}
+          {missionList.some((m) => m.status === "skipped") ? <details className="mt-3"><summary className="cursor-pointer text-xs font-semibold text-muted-foreground">Não realizadas ({missionList.filter((m) => m.status === "skipped").length})</summary><ul className="mt-2 space-y-2">{missionList.filter((m) => m.status === "skipped").map((m) => <li key={m.id}><button onClick={() => toggleMission.mutate({ id: m.id, status: "pending" })} className="flex w-full items-center gap-3 rounded-lg border border-border p-3 text-left text-sm text-muted-foreground"><X className="size-4"/><span>{m.title}</span><span className="ml-auto text-xs">Desfazer</span></button></li>)}</ul></details> : null}
       </section>
       <AchievementBurst
         open={!!conquista}
