@@ -6,4 +6,4 @@
 - [x] Persist meal plans, preferences, history, preview, and editing
 - [x] Reorganize home and pillar actions
 - [x] Improve community, navigation, pluralization, and responsiveness
-- [ ] Verify data isolation, persistence, error states, day rollover, mobile, and desktop
+- [x] Verify data isolation, persistence, error states, day rollover, mobile, and desktop
