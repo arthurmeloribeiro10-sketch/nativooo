@@ -86,6 +86,18 @@ export type DietPlanRow = {
   created_at: string;
 };
 
+const naturalMealNames: Record<string, string> = {
+  "Lanche da Caça": "Lanche da manhã",
+  "Almoço da Tribo": "Almoço",
+  "Café da Manhã Ancestral": "Café da manhã",
+  "Lanche da Colheita": "Lanche da tarde",
+  "Jantar da Fogueira": "Jantar",
+};
+
+function withNaturalMealName(meal: MealRow): MealRow {
+  return { ...meal, name: naturalMealNames[meal.name] ?? meal.name };
+}
+
 /* ---------- sementes do dia ---------- */
 
 const defaultMissions = [
@@ -267,7 +279,7 @@ export function useMeals(userId: string | undefined) {
         .eq("day", day)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as MealRow[];
+      return ((data ?? []) as MealRow[]).map(withNaturalMealName);
     },
   });
 }
@@ -377,7 +389,7 @@ export function useRecentMeals(userId: string | undefined) {
         .eq("user_id", userId ?? "").eq("done", true).lt("day", today())
         .order("created_at", { ascending: false }).limit(5);
       if (error) throw error;
-      return data ?? [];
+      return ((data ?? []) as MealRow[]).map(withNaturalMealName);
     },
   });
 }
