@@ -375,7 +375,7 @@ export function useDietPlans(userId: string | undefined) {
         .select("id, name, source, summary, active, created_at")
         .eq("user_id", userId ?? "").order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map(withNaturalMealName);
+      return data ?? [];
     },
   });
 }
@@ -389,7 +389,7 @@ export function useRecentMeals(userId: string | undefined) {
         .eq("user_id", userId ?? "").eq("done", true).lt("day", today())
         .order("created_at", { ascending: false }).limit(5);
       if (error) throw error;
-      return data ?? [];
+      return ((data ?? []) as MealRow[]).map(withNaturalMealName);
     },
   });
 }

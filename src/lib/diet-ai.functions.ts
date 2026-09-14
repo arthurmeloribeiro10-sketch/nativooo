@@ -56,7 +56,7 @@ export const generateDietPlan = createServerFn({ method: "POST" })
       birthDate: savedProfile.birth_date,
       metabolicSex: savedProfile.metabolic_sex as "female" | "male",
       activityLevel: savedProfile.activity_level,
-      goal: savedProfile.diet_goal ?? data.goal,
+      goal: savedProfile.diet_goal ?? data.goal ?? "",
     });
 
     const prompt = `Crie um plano alimentar inspirado na abordagem pró-metabólica associada a Ray Peat, explicada como preferência por alimentos de fácil digestão, proteína suficiente e fontes de energia regulares. Não trate essa abordagem como consenso médico. Use ingredientes brasileiros acessíveis para uma pessoa de ${weightKg} kg, ${heightCm} cm e ${energy.age} anos. A meta estimada é ${energy.targetKcal} kcal/dia, calculada pela fórmula ${energy.formula}, com fator de atividade ${energy.activityFactor} e ajuste de objetivo ${energy.goalAdjustment} kcal. Distribua as refeições para totalizar entre 90% e 110% da meta. Dê às refeições nomes naturais, elegantes e cotidianos, como "Café da manhã", "Lanche da manhã", "Almoço", "Lanche da tarde", "Jantar" ou "Ceia". Não use nomes temáticos, tribais, ancestrais ou ligados a caça, selva, colheita e fogueira.${
