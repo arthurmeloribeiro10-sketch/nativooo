@@ -533,6 +533,14 @@ export type PostView = {
   reactions: number;
   reacted: boolean;
   image_url: string | null;
+  replies: {
+    id: string;
+    post_id: string;
+    user_id: string;
+    body: string;
+    created_at: string;
+    author: string;
+  }[];
 };
 
 export function usePosts(userId: string | undefined) {
@@ -596,7 +604,25 @@ export function usePostMutations(userId: string | undefined) {
     onSuccess: invalidate,
   });
 
-  return { create, remove, react };
+  const reply = useMutation({
+    mutationFn: async ({ postId, body }: { postId: string; body: string }) => {
+      const { error } = await supabase
+        .from("post_replies")
+        .insert({ post_id: postId, user_id: userId!, body: body.trim() });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const removeReply = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("post_replies").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  return { create, remove, react, reply, removeReply };
 }
 
 export type RankingRow = {
