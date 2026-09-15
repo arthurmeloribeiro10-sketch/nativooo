@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronDown, Flame, Heart, ImagePlus, Plus, Trash2, X } from "lucide-react";
+import { ChevronDown, Flame, Heart, ImagePlus, MessageCircle, Plus, Send, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { usePostMutations, usePosts, useRanking } from "@/lib/nativo-queries";
 
@@ -43,11 +44,13 @@ function ComunidadePage() {
   const userId = user?.id;
   const posts = usePosts(userId);
   const ranking = useRanking(userId);
-  const { create, remove, react } = usePostMutations(userId);
+  const { create, remove, react, reply, removeReply } = usePostMutations(userId);
   const [texto, setTexto] = useState("");
   const [foto, setFoto] = useState<File | null>(null);
   const [previa, setPrevia] = useState<string | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
 
   function escolherFoto(file: File | null) {
     if (previa) URL.revokeObjectURL(previa);
@@ -139,7 +142,88 @@ function ComunidadePage() {
          ) : (posts.data ?? []).map((p) => (
             <article key={p.id} className="surface p-5">
               <div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-full bg-secondary font-display text-sm">{p.author.charAt(0).toUpperCase()}</div><div className="flex-1"><p className="text-sm font-medium">{p.author}</p><p className="text-xs text-muted-foreground">{tempoRelativo(p.created_at)}</p></div>{p.user_id === userId ? <button aria-label="Apagar publicação" onClick={() => remove.mutate(p.id)} className="p-2 text-muted-foreground hover:text-terracotta"><Trash2 className="size-4"/></button> : null}</div>
-              {p.body ? <p className="mt-4 text-sm leading-relaxed">{p.body}</p> : null}{p.image_url ? <img src={p.image_url} alt={`Foto publicada por ${p.author}`} loading="lazy" className="mt-4 w-full rounded-lg object-cover"/> : null}<button onClick={() => react.mutate({ postId: p.id, reacted: p.reacted })} className="mt-4 flex min-h-10 items-center gap-2 text-xs text-muted-foreground" aria-label={p.reacted ? "Remover apoio" : "Apoiar publicação"}><Heart className={`size-4 ${p.reacted ? "fill-terracotta text-terracotta" : ""}`}/>{p.reactions}</button>
+               {p.body ? <p className="mt-4 text-sm leading-relaxed">{p.body}</p> : null}
+               {p.image_url ? <img src={p.image_url} alt={`Foto publicada por ${p.author}`} loading="lazy" className="mt-4 w-full rounded-lg object-cover"/> : null}
+               <div className="mt-4 flex items-center gap-5">
+                 <button onClick={() => react.mutate({ postId: p.id, reacted: p.reacted })} className="flex min-h-10 items-center gap-2 text-xs text-muted-foreground" aria-label={p.reacted ? "Remover apoio" : "Apoiar publicação"}><Heart className={`size-4 ${p.reacted ? "fill-terracotta text-terracotta" : ""}`}/>{p.reactions}</button>
+                 <button
+                   type="button"
+                   onClick={() => {
+                     setReplyingTo((current) => current === p.id ? null : p.id);
+                     setReplyText("");
+                   }}
+                   className="flex min-h-10 items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
+                   aria-expanded={replyingTo === p.id}
+                 >
+                   <MessageCircle className="size-4" />
+                   {p.replies.length === 1 ? "1 resposta" : `${p.replies.length} respostas`}
+                 </button>
+               </div>
+
+               {p.replies.length > 0 ? (
+                 <div className="mt-3 space-y-3 border-l border-border pl-4">
+                   {p.replies.map((item) => (
+                     <div key={item.id} className="flex gap-3">
+                       <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary font-display text-xs">
+                         {item.author.charAt(0).toUpperCase()}
+                       </div>
+                       <div className="min-w-0 flex-1">
+                         <div className="flex items-center gap-2">
+                           <p className="text-xs font-medium">{item.author}</p>
+                           <span className="text-xs text-muted-foreground">{tempoRelativo(item.created_at)}</span>
+                         </div>
+                         <p className="mt-1 break-words text-sm leading-relaxed">{item.body}</p>
+                       </div>
+                       {item.user_id === userId ? (
+                         <button
+                           type="button"
+                           aria-label="Apagar resposta"
+                           onClick={() => removeReply.mutate(item.id, { onError: () => toast.error("Não consegui apagar a resposta.") })}
+                           className="self-start p-2 text-muted-foreground hover:text-terracotta"
+                         >
+                           <Trash2 className="size-3.5" />
+                         </button>
+                       ) : null}
+                     </div>
+                   ))}
+                 </div>
+               ) : null}
+
+               {replyingTo === p.id ? (
+                 <form
+                   className="mt-3 flex items-end gap-2"
+                   onSubmit={(event) => {
+                     event.preventDefault();
+                     const body = replyText.trim();
+                     if (!body) return;
+                     reply.mutate(
+                       { postId: p.id, body },
+                       {
+                         onSuccess: () => {
+                           setReplyText("");
+                           setReplyingTo(null);
+                         },
+                         onError: () => toast.error("Não consegui enviar a resposta."),
+                       },
+                     );
+                   }}
+                 >
+                   <label className="sr-only" htmlFor={`reply-${p.id}`}>Escreva uma resposta</label>
+                   <textarea
+                     id={`reply-${p.id}`}
+                     value={replyText}
+                     onChange={(event) => setReplyText(event.target.value.slice(0, 500))}
+                     rows={2}
+                     maxLength={500}
+                     autoFocus
+                     placeholder={`Responder a ${p.author}`}
+                     className="min-h-11 flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:border-leaf"
+                   />
+                   <Button type="submit" size="icon" disabled={!replyText.trim() || reply.isPending} aria-label="Enviar resposta">
+                     <Send className="size-4" />
+                   </Button>
+                 </form>
+               ) : null}
             </article>
          ))}
        </section>

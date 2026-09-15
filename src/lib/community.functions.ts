@@ -11,6 +11,16 @@ export type CommunityPostResult = {
   reactions: number;
   reacted: boolean;
   image_url: string | null;
+  replies: CommunityReplyResult[];
+};
+
+export type CommunityReplyResult = {
+  id: string;
+  post_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+  author: string;
 };
 
 export type CommunityRankingResult = {
@@ -38,15 +48,28 @@ export const getCommunityFeed = createServerFn({ method: "GET" })
     const postIds = rows.map((post) => post.id);
     const imagePaths = rows.flatMap((post) => (post.image_path ? [post.image_path] : []));
 
-    const [{ data: profiles }, { data: reactions }, signedImages] = await Promise.all([
+    const [{ data: profiles }, { data: reactions }, { data: replies }, signedImages] = await Promise.all([
       supabaseAdmin.from("profiles").select("id, display_name").in("id", userIds),
       supabaseAdmin.from("post_reactions").select("post_id, user_id").in("post_id", postIds),
+      supabaseAdmin
+        .from("post_replies")
+        .select("id, post_id, user_id, body, created_at")
+        .in("post_id", postIds)
+        .order("created_at", { ascending: true }),
       imagePaths.length
         ? supabaseAdmin.storage.from("community-photos").createSignedUrls(imagePaths, 3600)
         : Promise.resolve({ data: [] as { path: string | null; signedUrl: string }[] }),
     ]);
 
-    const names = new Map((profiles ?? []).map((profile) => [profile.id, profile.display_name]));
+    const replyUserIds = [...new Set((replies ?? []).map((reply) => reply.user_id))].filter(
+      (id) => !userIds.includes(id),
+    );
+    const { data: replyProfiles } = replyUserIds.length
+      ? await supabaseAdmin.from("profiles").select("id, display_name").in("id", replyUserIds)
+      : { data: [] };
+    const names = new Map(
+      [...(profiles ?? []), ...(replyProfiles ?? [])].map((profile) => [profile.id, profile.display_name]),
+    );
     const urls = new Map(
       (signedImages.data ?? []).map((image) => [image.path as string, image.signedUrl]),
     );
@@ -63,6 +86,12 @@ export const getCommunityFeed = createServerFn({ method: "GET" })
         (reaction) => reaction.post_id === post.id && reaction.user_id === context.userId,
       ),
       image_url: post.image_path ? (urls.get(post.image_path) ?? null) : null,
+      replies: (replies ?? [])
+        .filter((reply) => reply.post_id === post.id)
+        .map((reply) => ({
+          ...reply,
+          author: names.get(reply.user_id) ?? "Nativo",
+        })),
     }));
   });
 
