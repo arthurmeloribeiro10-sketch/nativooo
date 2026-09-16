@@ -11,4 +11,4 @@
 - [x] Add automatic Apple Health connection architecture for health metrics
 - [x] Include imported steps and sleep safely in score; keep glucose and pressure contextual
 - [x] Add replies to community posts with secure creation and deletion
-- [ ] Add persistent real-time notifications for community posts and replies
+- [x] Add persistent real-time notifications for community posts and replies
