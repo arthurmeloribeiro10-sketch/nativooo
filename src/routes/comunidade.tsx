@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronDown, Flame, Heart, ImagePlus, MessageCircle, Plus, Send, Trash2, X } from "lucide-react";
+import { Bell, CheckCheck, ChevronDown, Flame, Heart, ImagePlus, MessageCircle, Plus, Send, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { useCommunityNotificationsContext } from "@/lib/community-notifications-context";
 import { usePostMutations, usePosts, useRanking } from "@/lib/nativo-queries";
 
 export const Route = createFileRoute("/comunidade")({
@@ -51,6 +52,8 @@ function ComunidadePage() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notifications = useCommunityNotificationsContext();
 
   function escolherFoto(file: File | null) {
     if (previa) URL.revokeObjectURL(previa);
@@ -60,10 +63,89 @@ function ComunidadePage() {
 
   return (
     <AppShell>
-      <PageTitle
-        title="Comunidade Nativo"
-        subtitle="Pessoas praticando o mesmo método, no mesmo dia."
-      />
+       <div className="flex items-start justify-between gap-4">
+         <PageTitle
+           title="Comunidade Nativo"
+           subtitle="Pessoas praticando o mesmo método, no mesmo dia."
+         />
+         <Button
+           type="button"
+           variant="outline"
+           size="icon"
+           className="relative mt-1 shrink-0"
+           aria-label={notifications.unreadCount > 0 ? `${notifications.unreadCount} notificações não lidas` : "Notificações"}
+           aria-expanded={notificationsOpen}
+           onClick={() => setNotificationsOpen((open) => !open)}
+         >
+           <Bell className="size-4" />
+           {notifications.unreadCount > 0 ? (
+             <span className="absolute -right-2 -top-2 flex min-w-5 items-center justify-center rounded-full bg-terracotta px-1 text-[10px] leading-5 text-primary-foreground">
+               {notifications.unreadCount > 9 ? "9+" : notifications.unreadCount}
+             </span>
+           ) : null}
+         </Button>
+       </div>
+
+       {notificationsOpen ? (
+         <section className="surface mb-5 p-5" aria-label="Notificações da comunidade">
+           <div className="flex items-center justify-between gap-3">
+             <div>
+               <h2 className="text-lg">Novidades</h2>
+               <p className="text-xs text-muted-foreground">Mensagens e respostas da comunidade.</p>
+             </div>
+             {notifications.unreadCount > 0 ? (
+               <Button
+                 type="button"
+                 variant="ghost"
+                 size="sm"
+                 disabled={notifications.markAllRead.isPending}
+                 onClick={() => notifications.markAllRead.mutate()}
+               >
+                 <CheckCheck className="size-4" />
+                 Marcar como lidas
+               </Button>
+             ) : null}
+           </div>
+
+           {notifications.isLoading ? (
+             <p className="mt-4 text-sm text-muted-foreground">Carregando novidades…</p>
+           ) : notifications.isError ? (
+             <div className="mt-4">
+               <p className="text-sm text-muted-foreground">Não foi possível carregar as notificações.</p>
+               <Button type="button" variant="ghost" size="sm" className="mt-2" onClick={() => notifications.refetch()}>
+                 Tentar novamente
+               </Button>
+             </div>
+           ) : (notifications.data ?? []).length === 0 ? (
+             <p className="mt-4 text-sm text-muted-foreground">Nenhuma novidade por enquanto.</p>
+           ) : (
+             <ul className="mt-4 divide-y divide-border/60">
+               {(notifications.data ?? []).map((item) => (
+                 <li key={item.id}>
+                   <button
+                     type="button"
+                     className="flex w-full items-start gap-3 py-3 text-left"
+                     onClick={() => {
+                       setNotificationsOpen(false);
+                       if (!item.read_at) notifications.markAllRead.mutate();
+                       document.getElementById(`post-${item.post_id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                     }}
+                   >
+                     <span className={`mt-1.5 size-2 shrink-0 rounded-full ${item.read_at ? "bg-border" : "bg-terracotta"}`} />
+                     <span className="min-w-0 flex-1">
+                       <span className="block text-sm">
+                         <strong>{item.actor}</strong>{item.kind === "reply" ? " respondeu à sua publicação." : " compartilhou uma nova mensagem."}
+                       </span>
+                       {item.preview ? <span className="mt-1 block truncate text-xs text-muted-foreground">{item.preview}</span> : null}
+                       <span className="mt-1 block text-xs text-muted-foreground">{tempoRelativo(item.created_at)}</span>
+                     </span>
+                   </button>
+                 </li>
+               ))}
+             </ul>
+           )}
+         </section>
+       ) : null}
 
        <section className="mb-5 flex items-center justify-between"><div><h2 className="text-xl">Publicações recentes</h2><p className="text-xs text-muted-foreground">Experiências reais da comunidade.</p></div><button onClick={() => setComposerOpen((v) => !v)} className="flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground">{composerOpen ? <ChevronDown className="size-4"/> : <Plus className="size-4"/>}{composerOpen ? "Fechar" : "Compartilhar"}</button></section>
        {composerOpen ? <section className="surface p-5">
@@ -140,7 +222,7 @@ function ComunidadePage() {
          ) : posts.isError ? <div className="surface p-5"><p className="text-sm">Não foi possível carregar as publicações.</p><button onClick={() => posts.refetch()} className="mt-3 text-sm font-medium text-primary">Tentar novamente</button></div> : (posts.data ?? []).length === 0 ? (
            <div className="surface p-5"><p className="text-sm font-medium">A comunidade ainda está vazia.</p><p className="mt-1 text-xs text-muted-foreground">Compartilhe uma experiência quando quiser inaugurar este espaço.</p></div>
          ) : (posts.data ?? []).map((p) => (
-            <article key={p.id} className="surface p-5">
+             <article key={p.id} id={`post-${p.id}`} className="surface scroll-mt-6 p-5">
               <div className="flex items-center gap-3"><div className="flex size-10 items-center justify-center rounded-full bg-secondary font-display text-sm">{p.author.charAt(0).toUpperCase()}</div><div className="flex-1"><p className="text-sm font-medium">{p.author}</p><p className="text-xs text-muted-foreground">{tempoRelativo(p.created_at)}</p></div>{p.user_id === userId ? <button aria-label="Apagar publicação" onClick={() => remove.mutate(p.id)} className="p-2 text-muted-foreground hover:text-terracotta"><Trash2 className="size-4"/></button> : null}</div>
                {p.body ? <p className="mt-4 text-sm leading-relaxed">{p.body}</p> : null}
                {p.image_url ? <img src={p.image_url} alt={`Foto publicada por ${p.author}`} loading="lazy" className="mt-4 w-full rounded-lg object-cover"/> : null}

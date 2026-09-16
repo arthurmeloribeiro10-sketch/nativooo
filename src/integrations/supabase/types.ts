@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      community_notifications: {
+        Row: {
+          actor_id: string
+          created_at: string
+          id: string
+          kind: string
+          post_id: string
+          read_at: string | null
+          recipient_id: string
+          reply_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          post_id: string
+          read_at?: string | null
+          recipient_id: string
+          reply_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          post_id?: string
+          read_at?: string | null
+          recipient_id?: string
+          reply_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_notifications_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_notifications_reply_id_fkey"
+            columns: ["reply_id"]
+            isOneToOne: false
+            referencedRelation: "post_replies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_posts: {
         Row: {
           body: string
