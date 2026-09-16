@@ -1,8 +1,14 @@
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
 import { supabase } from "@/integrations/supabase/client";
-import { getCommunityFeed, getCommunityRanking } from "@/lib/community.functions";
+import {
+  getCommunityFeed,
+  getCommunityNotifications,
+  getCommunityRanking,
+  type CommunityNotificationResult,
+} from "@/lib/community.functions";
 
 export const DEFAULT_TZ = "America/Sao_Paulo";
 
@@ -639,6 +645,58 @@ export function useRanking(userId: string | undefined) {
     enabled: !!userId,
     queryFn: async (): Promise<RankingRow[]> => fetchCommunityRanking(),
   });
+}
+
+export function useCommunityNotifications(userId: string | undefined) {
+  const qc = useQueryClient();
+  const fetchNotifications = useServerFn(getCommunityNotifications);
+  const query = useQuery({
+    queryKey: ["community-notifications", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<CommunityNotificationResult[]> => fetchNotifications(),
+  });
+
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`community-notifications-${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "community_notifications",
+          filter: `recipient_id=eq.${userId}`,
+        },
+        () => {
+          void qc.invalidateQueries({ queryKey: ["community-notifications", userId] });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [qc, userId]);
+
+  const markAllRead = useMutation({
+    mutationFn: async () => {
+      if (!userId) return;
+      const { error } = await supabase
+        .from("community_notifications")
+        .update({ read_at: new Date().toISOString() })
+        .eq("recipient_id", userId)
+        .is("read_at", null);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["community-notifications", userId] }),
+  });
+
+  return {
+    ...query,
+    unreadCount: (query.data ?? []).filter((item) => !item.read_at).length,
+    markAllRead,
+  };
 }
 
 /* ---------- score ---------- */

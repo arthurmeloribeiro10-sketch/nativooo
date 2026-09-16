@@ -4,6 +4,7 @@ import { Home, ListChecks, Salad, Sun, Users, User, LogOut } from "lucide-react"
 import { useEffect, type ReactNode } from "react";
 
 import { useAuth } from "@/lib/auth-context";
+import { CommunityNotificationsProvider, useCommunityNotificationsContext } from "@/lib/community-notifications-context";
 
 const nav = [
   { to: "/", label: "Início", icon: Home },
@@ -42,6 +43,24 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
+    <CommunityNotificationsProvider userId={session.user.id}>
+      <AppShellContent signOut={signOut} navigate={navigate}>{children}</AppShellContent>
+    </CommunityNotificationsProvider>
+  );
+}
+
+function AppShellContent({
+  children,
+  signOut,
+  navigate,
+}: {
+  children: ReactNode;
+  signOut: () => Promise<void>;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
+  const { unreadCount } = useCommunityNotificationsContext();
+
+  return (
     <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 pb-32 pt-5 sm:px-6 sm:pt-7">
       <header className="mb-6 flex items-center justify-between">
         <Link to="/" className="flex items-baseline gap-2">
@@ -73,7 +92,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               inactiveProps={{ className: "text-muted-foreground" }}
               className="flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[10px] font-medium transition-colors hover:text-primary sm:text-[11px]"
             >
-              <Icon className="size-5" strokeWidth={1.6} />
+              <span className="relative">
+                <Icon className="size-5" strokeWidth={1.6} />
+                {to === "/comunidade" && unreadCount > 0 ? (
+                  <span className="absolute -right-2 -top-2 flex min-w-4 items-center justify-center rounded-full bg-terracotta px-1 text-[9px] leading-4 text-primary-foreground" aria-label={`${unreadCount} notificações não lidas`}>
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                ) : null}
+              </span>
               {label}
             </Link>
           ))}

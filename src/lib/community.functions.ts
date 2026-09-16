@@ -30,6 +30,17 @@ export type CommunityRankingResult = {
   missions_done: number;
 };
 
+export type CommunityNotificationResult = {
+  id: string;
+  kind: "post" | "reply";
+  post_id: string;
+  actor_id: string;
+  actor: string;
+  preview: string;
+  read_at: string | null;
+  created_at: string;
+};
+
 export const getCommunityFeed = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<CommunityPostResult[]> => {
@@ -133,4 +144,40 @@ export const getCommunityRanking = createServerFn({ method: "GET" })
           b.protocol_days - a.protocol_days || b.missions_done - a.missions_done,
       )
       .slice(0, 20);
+  });
+
+export const getCommunityNotifications = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<CommunityNotificationResult[]> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: notifications, error } = await supabaseAdmin
+      .from("community_notifications")
+      .select("id, kind, post_id, actor_id, read_at, created_at")
+      .eq("recipient_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (error) throw new Error("Não foi possível carregar as notificações.");
+
+    const rows = notifications ?? [];
+    if (rows.length === 0) return [];
+
+    const actorIds = [...new Set(rows.map((item) => item.actor_id))];
+    const postIds = [...new Set(rows.map((item) => item.post_id))];
+    const [{ data: profiles }, { data: posts }] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id, display_name").in("id", actorIds),
+      supabaseAdmin.from("community_posts").select("id, body").in("id", postIds),
+    ]);
+    const names = new Map((profiles ?? []).map((profile) => [profile.id, profile.display_name]));
+    const previews = new Map((posts ?? []).map((post) => [post.id, post.body]));
+
+    return rows.map((item) => ({
+      id: item.id,
+      kind: item.kind === "reply" ? "reply" : "post",
+      post_id: item.post_id,
+      actor_id: item.actor_id,
+      actor: names.get(item.actor_id) ?? "Alguém da comunidade",
+      preview: (previews.get(item.post_id) ?? "").slice(0, 90),
+      read_at: item.read_at,
+      created_at: item.created_at,
+    }));
   });
