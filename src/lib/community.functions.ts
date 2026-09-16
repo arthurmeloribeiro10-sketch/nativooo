@@ -98,7 +98,8 @@ export const uploadCommunityPhoto = createServerFn({ method: "POST" })
     }
 
     const path = `${context.userId}/${crypto.randomUUID()}.${image.extension}`;
-    const { error } = await context.supabase.storage
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.storage
       .from("community-photos")
       .upload(path, bytes, { contentType: image.contentType, upsert: false });
     if (error) throw new Error("Não foi possível enviar a foto.");
