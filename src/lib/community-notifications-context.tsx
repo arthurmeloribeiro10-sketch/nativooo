@@ -1,19 +1,15 @@
 import { createContext, useContext, type ReactNode } from "react";
 
+import { useAuth } from "@/lib/auth-context";
 import { useCommunityNotifications } from "@/lib/nativo-queries";
 
 type NotificationState = ReturnType<typeof useCommunityNotifications>;
 
 const CommunityNotificationsContext = createContext<NotificationState | null>(null);
 
-export function CommunityNotificationsProvider({
-  userId,
-  children,
-}: {
-  userId: string;
-  children: ReactNode;
-}) {
-  const state = useCommunityNotifications(userId);
+export function CommunityNotificationsProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const state = useCommunityNotifications(user?.id);
   return (
     <CommunityNotificationsContext.Provider value={state}>
       {children}
@@ -23,6 +19,6 @@ export function CommunityNotificationsProvider({
 
 export function useCommunityNotificationsContext() {
   const value = useContext(CommunityNotificationsContext);
-  if (!value) throw new Error("Community notifications must be used inside AppShell.");
+  if (!value) throw new Error("Community notifications provider is missing.");
   return value;
 }

@@ -4,7 +4,7 @@ import { Home, ListChecks, Salad, Sun, Users, User, LogOut } from "lucide-react"
 import { useEffect, type ReactNode } from "react";
 
 import { useAuth } from "@/lib/auth-context";
-import { CommunityNotificationsProvider, useCommunityNotificationsContext } from "@/lib/community-notifications-context";
+import { useCommunityNotificationsContext } from "@/lib/community-notifications-context";
 
 const nav = [
   { to: "/", label: "Início", icon: Home },
@@ -42,11 +42,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     );
   }
 
-  return (
-    <CommunityNotificationsProvider userId={session.user.id}>
-      <AppShellContent signOut={signOut} navigate={navigate}>{children}</AppShellContent>
-    </CommunityNotificationsProvider>
-  );
+  return <AppShellContent signOut={signOut} navigate={navigate}>{children}</AppShellContent>;
 }
 
 function AppShellContent({
