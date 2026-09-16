@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -40,6 +41,65 @@ export type CommunityNotificationResult = {
   read_at: string | null;
   created_at: string;
 };
+
+const MAX_COMMUNITY_PHOTO_BYTES = 10 * 1024 * 1024;
+
+const uploadCommunityPhotoInput = z.object({
+  base64: z.string().min(4).max(14_000_000),
+});
+
+function detectCommunityImage(bytes: Uint8Array): { extension: string; contentType: string } | null {
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 &&
+    bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a
+  ) {
+    return { extension: "png", contentType: "image/png" };
+  }
+
+  if (
+    bytes.length >= 4 &&
+    bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff &&
+    bytes[bytes.length - 2] === 0xff && bytes[bytes.length - 1] === 0xd9
+  ) {
+    return { extension: "jpg", contentType: "image/jpeg" };
+  }
+
+  const ascii = (start: number, length: number) =>
+    String.fromCharCode(...bytes.slice(start, start + length));
+  if (
+    bytes.length >= 16 &&
+    ascii(0, 4) === "RIFF" && ascii(8, 4) === "WEBP" &&
+    ["VP8 ", "VP8L", "VP8X"].includes(ascii(12, 4))
+  ) {
+    return { extension: "webp", contentType: "image/webp" };
+  }
+
+  return null;
+}
+
+export const uploadCommunityPhoto = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => uploadCommunityPhotoInput.parse(data))
+  .handler(async ({ data, context }): Promise<{ path: string }> => {
+    const bytes = Uint8Array.from(Buffer.from(data.base64, "base64"));
+    if (bytes.length === 0 || bytes.length > MAX_COMMUNITY_PHOTO_BYTES) {
+      throw new Error("A foto deve ter no máximo 10 MB.");
+    }
+
+    const image = detectCommunityImage(bytes);
+    if (!image) {
+      throw new Error("Envie uma foto válida em JPG, PNG ou WebP.");
+    }
+
+    const path = `${context.userId}/${crypto.randomUUID()}.${image.extension}`;
+    const { error } = await context.supabase.storage
+      .from("community-photos")
+      .upload(path, bytes, { contentType: image.contentType, upsert: false });
+    if (error) throw new Error("Não foi possível enviar a foto.");
+
+    return { path };
+  });
 
 export const getCommunityFeed = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
