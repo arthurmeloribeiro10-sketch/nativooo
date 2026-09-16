@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "community photos readable" ON storage.objects;

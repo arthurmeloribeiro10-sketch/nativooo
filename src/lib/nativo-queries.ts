@@ -7,6 +7,7 @@ import {
   getCommunityFeed,
   getCommunityNotifications,
   getCommunityRanking,
+  uploadCommunityPhoto,
   type CommunityNotificationResult,
 } from "@/lib/community.functions";
 
@@ -560,19 +561,21 @@ export function usePosts(userId: string | undefined) {
 
 export function usePostMutations(userId: string | undefined) {
   const qc = useQueryClient();
+  const uploadPhoto = useServerFn(uploadCommunityPhoto);
   const invalidate = () => qc.invalidateQueries({ queryKey: ["posts", userId] });
 
   const create = useMutation({
     mutationFn: async ({ body, file }: { body: string; file?: File | null }) => {
       let image_path: string | null = null;
       if (file) {
-        const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
-        const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("community-photos")
-          .upload(path, file, { contentType: file.type || "image/jpeg" });
-        if (upErr) throw upErr;
-        image_path = path;
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        let binary = "";
+        const chunkSize = 0x8000;
+        for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+          binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+        }
+        const uploaded = await uploadPhoto({ data: { base64: btoa(binary) } });
+        image_path = uploaded.path;
       }
       const { error } = await supabase
         .from("community_posts")
