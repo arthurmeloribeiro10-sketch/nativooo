@@ -20,16 +20,16 @@ import {
 export const Route = createFileRoute("/registro")({
   head: () => ({
     meta: [
-      { title: "Registrar refeição e hábitos — NATIVO" },
+      { title: "Registrar refeição e hábitos — APOLO" },
       {
         name: "description",
         content:
           "Registre refeições em texto e marque hábitos do dia. Feedback leve, sem contagem obsessiva de calorias.",
       },
-      { property: "og:title", content: "Registrar refeição e hábitos — NATIVO" },
+      { property: "og:title", content: "Registrar refeição e hábitos — APOLO" },
       {
         property: "og:description",
-        content: "Poucos toques para registrar seu dia e ver o Nativo Score se atualizar.",
+        content: "Poucos toques para registrar seu dia e ver o Apolo Score se atualizar.",
       },
        { property: "og:type", content: "website" },
        { name: "twitter:card", content: "summary" },
@@ -186,7 +186,7 @@ function RegistroPage() {
       <AchievementBurst
         open={!!conquista}
         title="Refeição registrada!"
-        subtitle={conquista ? `"${conquista}" entrou no seu dia e conta no seu Nativo Score.` : ""}
+        subtitle={conquista ? `"${conquista}" entrou no seu dia e conta no seu Apolo Score.` : ""}
         onDone={() => setConquista(null)}
       />
     </AppShell>

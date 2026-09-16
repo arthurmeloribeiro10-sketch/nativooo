@@ -3,5 +3,5 @@ export function plural(count: number, singular: string, pluralForm = `${singular
 }
 
 export function firstName(name?: string | null) {
-  return name?.trim().split(/\s+/)[0] || "Nativo";
+  return name?.trim().split(/\s+/)[0] || "Apolo";
 }

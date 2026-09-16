@@ -91,7 +91,7 @@ export const getCommunityFeed = createServerFn({ method: "GET" })
       body: post.body,
       created_at: post.created_at,
       user_id: post.user_id,
-      author: names.get(post.user_id) ?? "Nativo",
+      author: names.get(post.user_id) ?? "Apolo",
       reactions: allReactions.filter((reaction) => reaction.post_id === post.id).length,
       reacted: allReactions.some(
         (reaction) => reaction.post_id === post.id && reaction.user_id === context.userId,
@@ -101,7 +101,7 @@ export const getCommunityFeed = createServerFn({ method: "GET" })
         .filter((reply) => reply.post_id === post.id)
         .map((reply) => ({
           ...reply,
-          author: names.get(reply.user_id) ?? "Nativo",
+          author: names.get(reply.user_id) ?? "Apolo",
         })),
     }));
   });

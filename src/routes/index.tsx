@@ -10,8 +10,8 @@ import { firstName, plural } from "@/lib/format";
 import { averageScore, computePillars, computeStreak, lastDays, today, useMeals, useMissions, useMissionsWeek, useProfile, useProtocol, useSleepWeek, useStepsWeek, useToggleMission, weekdayLabel } from "@/lib/nativo-queries";
 
 export const Route = createFileRoute("/")({ head: () => ({ meta: [
-  { title: "NATIVO — Hábitos naturais para hoje" }, { name: "description", content: "Veja suas ações do dia, registre hábitos e acompanhe seu progresso no NATIVO." },
-  { property: "og:title", content: "NATIVO — Hábitos naturais para hoje" }, { property: "og:description", content: "Alimentação, movimento, sono, ar livre e constância em ações simples." },
+  { title: "APOLO — Hábitos naturais para hoje" }, { name: "description", content: "Veja suas ações do dia, registre hábitos e acompanhe seu progresso no APOLO." },
+  { property: "og:title", content: "APOLO — Hábitos naturais para hoje" }, { property: "og:description", content: "Alimentação, movimento, sono, ar livre e constância em ações simples." },
   { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
 ] }), component: Home });
 

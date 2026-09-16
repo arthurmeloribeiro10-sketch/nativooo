@@ -60,7 +60,7 @@ function AppShellContent({
     <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 pb-32 pt-5 sm:px-6 sm:pt-7">
       <header className="mb-6 flex items-center justify-between">
         <Link to="/" className="flex items-baseline gap-2">
-          <span className="font-display text-xl font-bold tracking-[0.22em] text-primary">NATIVO</span>
+          <span className="font-display text-xl font-bold tracking-[0.22em] text-primary">APOLO</span>
         </Link>
         <button
           type="button"

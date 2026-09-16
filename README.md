@@ -1,17 +1,17 @@
-# Nativo: Sua Vida em Prática
+# Apolo: Sua Vida em Prática
 
-Base completa do aplicativo Nativo
+Base completa do aplicativo Apolo
 
 1. Visão geral
 
-Nome provisório: NATIVO
+Nome provisório: APOLO
 Assinatura recomendada: Seu estilo de vida em prática.
 
-O Nativo é uma plataforma de lifestyle e bem-estar que transforma o conteúdo, os hábitos e o método de creators em uma experiência prática e diária.
+O Apolo é uma plataforma de lifestyle e bem-estar que transforma o conteúdo, os hábitos e o método de creators em uma experiência prática e diária.
 
 O aplicativo começa com o lifestyle natural do creator João Braga, mas deve ser construído para futuramente receber outros creators, cada um com seus próprios protocolos, jornadas, comunidade e produtos.
 
-O Nativo não é somente um aplicativo de dieta, contagem de calorias ou academia. Ele ajuda o usuário a transformar conhecimento em comportamento recorrente.
+O Apolo não é somente um aplicativo de dieta, contagem de calorias ou academia. Ele ajuda o usuário a transformar conhecimento em comportamento recorrente.
 
 2. Conceito central
 
@@ -33,7 +33,7 @@ A maioria das pessoas já sabe, de maneira geral, que precisa:
 
 O problema é que esse conhecimento fica espalhado em vídeos, posts e stories e raramente se transforma em uma rotina consistente.
 
-O Nativo organiza esse conteúdo em ações simples, mensuráveis e aplicáveis no cotidiano.
+O Apolo organiza esse conteúdo em ações simples, mensuráveis e aplicáveis no cotidiano.
 
 Ideia central
 
@@ -65,7 +65,7 @@ Hoje, o usuário encontra alguns problemas:
 
 4. Proposta de valor
 
-O Nativo transforma hábitos cotidianos em uma jornada simples de evolução.
+O Apolo transforma hábitos cotidianos em uma jornada simples de evolução.
 
 O usuário registra partes do dia, recebe um score, realiza pequenas missões e acompanha sua evolução sem precisar viver obcecado por calorias ou peso.
 
@@ -147,7 +147,7 @@ Público futuro
 
 6. Posicionamento
 
-O Nativo deve ser percebido como:
+O Apolo deve ser percebido como:
 
  uma plataforma de lifestyle;
 
@@ -161,7 +161,7 @@ O Nativo deve ser percebido como:
 
  uma plataforma de protocolos criados por creators.
 
-O Nativo não deve parecer:
+O Apolo não deve parecer:
 
  aplicativo hospitalar;
 
@@ -177,13 +177,13 @@ O Nativo não deve parecer:
 
  sistema que promete diagnóstico médico.
 
-7. Pilares do Nativo Score
+7. Pilares do Apolo Score
 
-O Nativo Score é uma representação simples de como o usuário está cuidando do próprio estilo de vida.
+O Apolo Score é uma representação simples de como o usuário está cuidando do próprio estilo de vida.
 
 Exemplo:
 
-Nativo Score: 78/100
+Apolo Score: 78/100
 
 O cálculo pode considerar os seguintes pilares:
 
@@ -297,7 +297,7 @@ O loop principal do produto pode seguir esta lógica:
 
 Captura: o usuário registra uma refeição, hábito ou parte da rotina.
 
-Score: o Nativo interpreta os registros e atualiza o score.
+Score: o Apolo interpreta os registros e atualiza o score.
 
 Missão: o usuário recebe uma pequena ação prática.
 
@@ -341,7 +341,7 @@ A tela inicial pode apresentar:
 
  pergunta do dia;
 
- Nativo Score;
+ Apolo Score;
 
  resumo dos pilares;
 
@@ -411,7 +411,7 @@ O usuário pode registrar:
 
  outros hábitos dos protocolos.
 
-Nativo Score
+Apolo Score
 
 Deve mostrar:
 
@@ -521,7 +521,7 @@ O perfil pode mostrar:
 
 Marketplace
 
-No futuro, o Nativo pode reunir:
+No futuro, o Apolo pode reunir:
 
  protocolos premium;
 
@@ -547,7 +547,7 @@ As recomendações devem estar ligadas ao contexto do usuário e ao método segu
 
 11. Estrutura da plataforma para creators
 
-O Nativo deve evoluir do “aplicativo do João” para uma plataforma de creators.
+O Apolo deve evoluir do “aplicativo do João” para uma plataforma de creators.
 
 Cada creator poderá ter:
 
@@ -573,7 +573,7 @@ Cada creator poderá ter:
 
  acompanhamento dos participantes.
 
-A marca principal continua sendo Nativo. O João Braga seria o primeiro creator e o rosto do lançamento, não necessariamente o nome permanente do aplicativo.
+A marca principal continua sendo Apolo. O João Braga seria o primeiro creator e o rosto do lançamento, não necessariamente o nome permanente do aplicativo.
 
 12. MVP inicial
 
@@ -735,7 +735,7 @@ Possível modelo:
 
  taxa de 20% a 30% sobre cada venda;
 
- divisão de receita entre Nativo e creator.
+ divisão de receita entre Apolo e creator.
 
 Marketplace
 
@@ -841,7 +841,7 @@ Depois da validação com João Braga:
 
 Nome recomendado
 
-NATIVO
+APOLO
 
 Motivos
 
@@ -865,33 +865,33 @@ Motivos
 
 Aplicações verbais
 
- Nativo Score;
+ Apolo Score;
 
- Protocolo Nativo;
+ Protocolo Apolo;
 
- Comunidade Nativo;
+ Comunidade Apolo;
 
- Jornada Nativo;
+ Jornada Apolo;
 
- Método Nativo;
+ Método Apolo;
 
- Nativo Pro;
+ Apolo Pro;
 
- Creator Nativo.
+ Creator Apolo.
 
 Assinaturas possíveis
 
-NATIVO — Seu estilo de vida em prática.
+APOLO — Seu estilo de vida em prática.
 
- NATIVO — Viva o que faz sentido.
+ APOLO — Viva o que faz sentido.
 
- NATIVO — Menos controle. Mais vida bem vivida.
+ APOLO — Menos controle. Mais vida bem vivida.
 
- NATIVO — Hábitos para uma vida real.
+ APOLO — Hábitos para uma vida real.
 
 A assinatura recomendada é:
 
-NATIVO — Seu estilo de vida em prática.
+APOLO — Seu estilo de vida em prática.
 
 Outras hipóteses de nome
 
@@ -1083,7 +1083,7 @@ O aplicativo pode mostrar:
 
 Estas informações ainda precisam ser decididas durante o desenvolvimento:
 
- fórmula exata do Nativo Score;
+ fórmula exata do Apolo Score;
 
  peso de cada pilar;
 
@@ -1111,13 +1111,13 @@ Estas informações ainda precisam ser decididas durante o desenvolvimento:
 
  necessidade de profissionais de saúde na validação;
 
- disponibilidade jurídica do nome Nativo;
+ disponibilidade jurídica do nome Apolo;
 
  domínio e arrobas disponíveis.
 
 Resumo de uma frase
 
-O Nativo é uma plataforma que transforma o lifestyle de creators em hábitos, protocolos e comunidades, ajudando pessoas a viver melhor com mais consciência, consistência e menos obsessão\
+O Apolo é uma plataforma que transforma o lifestyle de creators em hábitos, protocolos e comunidades, ajudando pessoas a viver melhor com mais consciência, consistência e menos obsessão\
 
 This project was built with [Lovable](https://lovable.dev).
 

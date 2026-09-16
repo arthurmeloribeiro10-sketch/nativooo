@@ -12,13 +12,13 @@ import { usePostMutations, usePosts, useRanking } from "@/lib/nativo-queries";
 export const Route = createFileRoute("/comunidade")({
   head: () => ({
     meta: [
-      { title: "Comunidade e ranking — NATIVO" },
+      { title: "Comunidade e ranking — APOLO" },
       {
         name: "description",
         content:
           "Compartilhe progresso, participe de desafios e acompanhe um ranking de consistência — competição leve, sem comparação prejudicial.",
       },
-      { property: "og:title", content: "Comunidade e ranking — NATIVO" },
+      { property: "og:title", content: "Comunidade e ranking — APOLO" },
       {
         property: "og:description",
         content: "Consistência, sequência e participação: o ranking celebra hábito, não número.",
@@ -65,7 +65,7 @@ function ComunidadePage() {
     <AppShell>
        <div className="flex items-start justify-between gap-4">
          <PageTitle
-           title="Comunidade Nativo"
+           title="Comunidade Apolo"
            subtitle="Pessoas praticando o mesmo método, no mesmo dia."
          />
          <Button

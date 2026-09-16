@@ -1,4 +1,4 @@
-# NATIVO upgrade roadmap
+# APOLO upgrade roadmap
 
 - [x] Correct UV data, safety guidance, city fallback, and states
 - [x] Correct score semantics and separate daily/streak/protocol progress

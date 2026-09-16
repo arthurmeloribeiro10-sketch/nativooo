@@ -10,13 +10,13 @@ import { useAuth } from "@/lib/auth-context";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar no NATIVO" },
+      { title: "Entrar no APOLO" },
       {
         name: "description",
         content:
-          "Crie sua conta no NATIVO e comece a acompanhar de verdade suas missões, refeições, sol, passos e sono.",
+          "Crie sua conta no APOLO e comece a acompanhar de verdade suas missões, refeições, sol, passos e sono.",
       },
-      { property: "og:title", content: "Entrar no NATIVO" },
+      { property: "og:title", content: "Entrar no APOLO" },
       {
         property: "og:description",
         content: "Sua conta guarda seu progresso, seu protocolo e sua evolução.",
@@ -88,7 +88,7 @@ function AuthPage() {
       <div className="rise text-center">
         <Leaf className="mx-auto size-7 text-leaf" strokeWidth={1.6} />
         <h1 className="mt-4 font-display text-2xl font-bold tracking-[0.22em] text-primary">
-          NATIVO
+          APOLO
         </h1>
         <p className="mt-3 text-sm text-muted-foreground">
           Seu estilo de vida em prática. Entre para guardar seu progresso.

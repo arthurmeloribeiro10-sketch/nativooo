@@ -23,13 +23,13 @@ import {
 export const Route = createFileRoute("/perfil")({
   head: () => ({
     meta: [
-      { title: "Seu perfil e evolução — NATIVO" },
+      { title: "Seu perfil e evolução — APOLO" },
       {
         name: "description",
         content:
-          "Histórico do Nativo Score, protocolo, sequência e evolução dos pilares do seu estilo de vida.",
+          "Histórico do Apolo Score, protocolo, sequência e evolução dos pilares do seu estilo de vida.",
       },
-      { property: "og:title", content: "Seu perfil e evolução — NATIVO" },
+      { property: "og:title", content: "Seu perfil e evolução — APOLO" },
       {
         property: "og:description",
         content: "Menos controle ansioso. Mais vida bem vivida — acompanhe sua evolução real.",
@@ -156,7 +156,7 @@ function PerfilPage() {
           type="button"
           onClick={() =>
             updateProfile.mutate(
-              { display_name: nome.trim() || "Nativo", step_goal: Number(meta) || 10000, meal_goal: Number(metaRefeicoes) || 4, birth_date: nascimento || null, metabolic_sex: sexoCalculo || null, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+              { display_name: nome.trim() || "Apolo", step_goal: Number(meta) || 10000, meal_goal: Number(metaRefeicoes) || 4, birth_date: nascimento || null, metabolic_sex: sexoCalculo || null, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
                { onSuccess: () => toast.success("Perfil atualizado."), onError: () => toast.error("Não foi possível salvar suas metas. Tente novamente.") },
             )
           }

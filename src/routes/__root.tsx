@@ -80,13 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "NATIVO — Seu estilo de vida em prática" },
+      { title: "APOLO — Seu estilo de vida em prática" },
       {
         name: "description",
         content:
           "Plataforma de lifestyle que transforma o método de creators em hábitos diários, protocolos e comunidade.",
       },
-      { property: "og:title", content: "NATIVO — Seu estilo de vida em prática" },
+      { property: "og:title", content: "APOLO — Seu estilo de vida em prática" },
       {
         property: "og:description",
         content: "Menos controle ansioso. Mais vida bem vivida.",
