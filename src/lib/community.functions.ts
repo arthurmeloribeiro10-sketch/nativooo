@@ -82,7 +82,12 @@ export const uploadCommunityPhoto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => uploadCommunityPhotoInput.parse(data))
   .handler(async ({ data, context }): Promise<{ path: string }> => {
-    const bytes = Uint8Array.from(Buffer.from(data.base64, "base64"));
+    let bytes: Uint8Array;
+    try {
+      bytes = Uint8Array.from(atob(data.base64), (character) => character.charCodeAt(0));
+    } catch {
+      throw new Error("O arquivo enviado não é uma foto válida.");
+    }
     if (bytes.length === 0 || bytes.length > MAX_COMMUNITY_PHOTO_BYTES) {
       throw new Error("A foto deve ter no máximo 10 MB.");
     }
