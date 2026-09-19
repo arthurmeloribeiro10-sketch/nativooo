@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Award, Flame, Leaf } from "lucide-react";
+import { Award, ChevronRight, Flame, Leaf, Sun, Users, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
@@ -185,6 +185,29 @@ function PerfilPage() {
           </div>
         )}
         <p className="mt-5 font-editorial text-sm text-accent">"Menos controle. Mais consciência."</p>
+      </section>
+
+      <section className="surface mt-6 divide-y divide-border/60 p-2">
+        {[
+          { to: "/corpo", label: "Corpo", detail: "Índice UV, passos e sono", icon: Sun },
+          { to: "/comunidade", label: "Comunidade", detail: "Ranking e feed", icon: Users },
+          { to: "/protocolo", label: "Protocolo", detail: "Sua jornada de 30 dias", icon: ClipboardList },
+        ].map(({ to, label, detail, icon: Icon }) => (
+          <Link
+            key={to}
+            to={to}
+            className="flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-secondary/60"
+          >
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
+              <Icon className="size-5" strokeWidth={1.6} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-medium">{label}</span>
+              <span className="block truncate text-xs text-muted-foreground">{detail}</span>
+            </span>
+            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+          </Link>
+        ))}
       </section>
     </AppShell>
   );

@@ -5,9 +5,13 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * APOLO design system — "Natural Premium"
- * Verde floresta, creme natural, dourado terroso.
+ * APOLO design system — "Wellness Premium"
+ * Azul #446CB3 como cor de destaque, off-white como base, tons quentes
+ * (terracota, dourado, verde) reservados para estados semânticos.
  * Todas as cores em oklch. Nunca usar cores literais nos componentes.
+ *
+ * --background é PROVISÓRIO: valor pedido (#FBFEC) estava incompleto,
+ * usando #FBFEFC até confirmação. Trocar só este token no dia.
  */
 
 @theme inline {
@@ -63,53 +67,54 @@
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.875rem;
 
-  /* Creme natural #F5F0E4 */
-  --background: oklch(0.955 0.021 91.5);
-  /* Verde quase preto #17251E */
-  --foreground: oklch(0.245 0.023 158);
+  /* Off-white #FBFEFC — PROVISÓRIO, ver nota acima */
+  --background: oklch(0.994 0.004 157.2);
+  /* Navy de leitura, par de contraste do azul primário */
+  --foreground: oklch(0.252 0.056 264);
 
-  --card: oklch(0.978 0.014 92);
-  --card-foreground: oklch(0.245 0.023 158);
-  --popover: oklch(0.978 0.014 92);
-  --popover-foreground: oklch(0.245 0.023 158);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.252 0.056 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.252 0.056 264);
 
-  /* Verde floresta #123D2E */
-  --primary: oklch(0.325 0.055 160);
-  --primary-foreground: oklch(0.968 0.018 92);
+  /* Primary Blue #446CB3 */
+  --primary: oklch(0.536 0.121 261.1);
+  --primary-foreground: oklch(1 0 0);
 
-  /* Areia clara #E8DEC8 */
-  --secondary: oklch(0.906 0.031 88);
-  --secondary-foreground: oklch(0.325 0.055 160);
+  /* Tint claro do azul, para superfícies secundárias */
+  --secondary: oklch(0.94 0.02 261);
+  --secondary-foreground: oklch(0.4 0.1 261);
 
-  --muted: oklch(0.918 0.026 89);
-  --muted-foreground: oklch(0.43 0.032 155);
+  --muted: oklch(0.955 0.006 260);
+  --muted-foreground: oklch(0.5 0.02 260);
 
-  /* Verde folha #4F7D55 */
-  --accent: oklch(0.542 0.069 148);
-  --accent-foreground: oklch(0.978 0.014 92);
+  --accent: oklch(0.536 0.121 261.1);
+  --accent-foreground: oklch(1 0 0);
 
-  /* Terracota #C97854 */
-  --destructive: oklch(0.652 0.111 44);
-  --destructive-foreground: oklch(0.978 0.014 92);
+  /* Vermelho de ações destrutivas reais (delete etc.) — distinto da terracota semântica */
+  --destructive: oklch(0.58 0.19 25);
+  --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.82 0.035 88);
-  --input: oklch(0.79 0.038 88);
-  --ring: oklch(0.542 0.069 148);
+  --border: oklch(0.89 0.012 260);
+  --input: oklch(0.85 0.014 260);
+  --ring: oklch(0.536 0.121 261.1);
 
-  --leaf: oklch(0.542 0.069 148);
-  --leaf-foreground: oklch(0.978 0.014 92);
-  --sand: oklch(0.906 0.031 88);
-  /* Dourado terroso #C8A85A */
+  /* "leaf" mantém o nome (usado em ~40 lugares) mas agora carrega o azul primário */
+  --leaf: oklch(0.536 0.121 261.1);
+  --leaf-foreground: oklch(1 0 0);
+  --sand: oklch(0.95 0.015 261);
+  /* Dourado — reservado para destaques premium pontuais */
   --gold: oklch(0.744 0.093 87);
-  --gold-foreground: oklch(0.245 0.023 158);
-  /* Verde vivo #78A96B */
+  --gold-foreground: oklch(0.252 0.056 264);
+  /* Verde de sucesso/positivo — estado semântico, não é mais a cor de marca */
   --success: oklch(0.687 0.084 137);
+  /* Terracota — reservado para "atenção" (ex.: scanner de produtos) */
   --terracotta: oklch(0.652 0.111 44);
 
-  --chart-1: oklch(0.325 0.055 160);
-  --chart-2: oklch(0.542 0.069 148);
+  --chart-1: oklch(0.536 0.121 261.1);
+  --chart-2: oklch(0.62 0.1 255);
   --chart-3: oklch(0.687 0.084 137);
   --chart-4: oklch(0.744 0.093 87);
   --chart-5: oklch(0.652 0.111 44);
