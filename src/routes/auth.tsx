@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Leaf } from "lucide-react";
 import { toast } from "sonner";
 
+import apolloMark from "@/assets/apollo-mark.png.asset.json";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -86,7 +86,11 @@ function AuthPage() {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12">
       <div className="rise text-center">
-        <Leaf className="mx-auto size-7 text-leaf" strokeWidth={1.6} />
+        <img
+          src={apolloMark.url}
+          alt="Símbolo APOLO"
+          className="mx-auto size-12 rounded-full object-cover"
+        />
         <h1 className="mt-4 font-display text-2xl font-bold tracking-[0.22em] text-primary">
           APOLO
         </h1>
