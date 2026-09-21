@@ -224,7 +224,7 @@ function PerfilPage() {
             ))}
           </div>
         )}
-        <p className="mt-5 font-editorial text-sm text-accent">
+        <p className="mt-5 font-editorial text-sm italic text-accent">
           "Menos controle. Mais consciência."
         </p>
       </section>

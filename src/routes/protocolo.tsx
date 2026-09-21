@@ -95,7 +95,7 @@ function ProtocoloPage() {
             style={{ width: `${(concluidos / 30) * 100}%` }}
           />
         </div>
-        <p className="mt-5 font-editorial text-base leading-relaxed">
+        <p className="mt-5 font-editorial text-base italic leading-relaxed">
           "Você não precisa de um dia perfeito para continuar."
         </p>
       </section>

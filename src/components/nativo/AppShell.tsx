@@ -65,9 +65,14 @@ function AppShellContent({
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 pb-32 pt-5 sm:px-6 sm:pt-7">
       <header className="mb-6 flex items-center justify-between">
-        <Link to="/" className="flex items-baseline gap-2">
-          <span className="font-display text-xl font-bold tracking-[0.22em] text-primary">
-            APOLO
+        <Link to="/" className="flex items-center gap-2">
+          <span
+            aria-hidden
+            className="size-2.5 rounded-full"
+            style={{ background: "var(--gradient-solar)" }}
+          />
+          <span className="font-display text-2xl font-semibold italic tracking-tight text-foreground">
+            Apolo
           </span>
         </Link>
         <button
@@ -95,7 +100,10 @@ function AppShellContent({
                 className="relative -mt-7 flex min-w-0 flex-1 flex-col items-center justify-end gap-1 text-[10px] font-medium text-primary sm:text-[11px]"
                 aria-label={label}
               >
-                <span className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lifted ring-4 ring-background transition-transform active:scale-95">
+                <span
+                  className="flex size-14 items-center justify-center rounded-full text-primary-foreground shadow-lifted ring-4 ring-background transition-transform duration-200 ease-out hover:-translate-y-0.5 active:scale-90"
+                  style={{ background: "var(--gradient-primary)" }}
+                >
                   <Icon className="size-6" strokeWidth={1.8} />
                 </span>
                 {label}
@@ -107,7 +115,7 @@ function AppShellContent({
                 activeOptions={{ exact: to === "/" }}
                 activeProps={{ className: "bg-secondary text-primary", "aria-current": "page" }}
                 inactiveProps={{ className: "text-muted-foreground" }}
-                className="flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[10px] font-medium transition-colors hover:text-primary sm:text-[11px]"
+                className="flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[10px] font-medium transition-all duration-200 ease-out hover:-translate-y-0.5 hover:text-primary active:scale-95 sm:text-[11px]"
               >
                 <span className="relative">
                   <Icon className="size-5" strokeWidth={1.6} />

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Salad } from "lucide-react";
 import { toast } from "sonner";
 
@@ -8,6 +9,7 @@ import { StreakBadge } from "@/components/nativo/StreakBadge";
 import { CoinBalance } from "@/components/nativo/CoinBalance";
 import { Challenge30Card } from "@/components/nativo/Challenge30Card";
 import { DailyMissionCard } from "@/components/nativo/DailyMissionCard";
+import { AchievementBurst } from "@/components/nativo/AchievementBurst";
 import { BodyRoutinePreview } from "@/components/nativo/BodyRoutinePreview";
 import { WeeklyBarChart } from "@/components/nativo/WeeklyBarChart";
 import { PillarCard } from "@/components/nativo/PillarCard";
@@ -16,6 +18,11 @@ import { useAuth } from "@/lib/auth-context";
 import { firstName } from "@/lib/format";
 import { useSunIndex, uvLevel } from "@/lib/sun";
 import { useWalletBalance, useCompleteChallengeDay } from "@/lib/gamification/queries";
+
+/** Delay de entrada em cascata para as seções da Home — `.rise` lê `--stagger`. */
+function stagger(index: number): React.CSSProperties {
+  return { "--stagger": `${index * 70}ms` } as React.CSSProperties;
+}
 import {
   averageScore,
   computePillars,
@@ -92,6 +99,19 @@ function Home() {
   const completedDays = protocol.data ?? [];
   const todayChallengeDay = Math.min(30, completedDays.length + 1);
 
+  const dayJustCompleted = list.length > 0 && pending.length === 0;
+
+  // Dispara a celebração só na TRANSIÇÃO de "tem pendente" pra "tudo feito"
+  // durante a sessão — nunca ao simplesmente carregar um dia já concluído.
+  const [showDayBurst, setShowDayBurst] = useState(false);
+  const prevPendingCount = useRef(pending.length);
+  useEffect(() => {
+    if (prevPendingCount.current > 0 && pending.length === 0 && list.length > 0) {
+      setShowDayBurst(true);
+    }
+    prevPendingCount.current = pending.length;
+  }, [pending.length, list.length]);
+
   const hour = Number(
     new Intl.DateTimeFormat("pt-BR", {
       hour: "2-digit",
@@ -151,12 +171,25 @@ function Home() {
 
   return (
     <AppShell>
+      <AchievementBurst
+        open={showDayBurst}
+        title="Dia concluído ☀️"
+        subtitle={`Você fechou as ${list.length} ações de hoje. Sequência de ${streak + 1} ${streak + 1 === 1 ? "dia" : "dias"}.`}
+        onDone={() => setShowDayBurst(false)}
+      />
+
       <header className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">
             {greeting(hour)}, {firstName(profile.data?.display_name)} 👋
           </p>
-          <h1 className="mt-1 text-2xl">Continue construindo sua melhor versão.</h1>
+          <h1 className="mt-1 text-2xl">
+            {dayJustCompleted
+              ? "Dia concluído ☀️"
+              : completed.length > 0
+                ? `Você já concluiu ${completed.length} de ${list.length} hoje.`
+                : "Continue construindo sua melhor versão."}
+          </h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <StreakBadge days={streak} />
@@ -169,48 +202,88 @@ function Home() {
         </div>
       </header>
 
-      <section className="surface-deep rise flex items-center gap-4 p-5">
+      <section
+        className={`rise flex items-center gap-4 p-5 ${dayJustCompleted ? "surface-solar" : "surface-deep"}`}
+        style={stagger(0)}
+      >
         <ScoreRing score={score} size={92} />
         <div>
-          <p className="text-xs uppercase tracking-[0.12em] opacity-75">Seu progresso hoje</p>
-          <p className="mt-1 font-editorial text-lg">
+          <p className="text-xs uppercase tracking-[0.12em] opacity-75">
+            {dayJustCompleted ? "Dia completo" : "Seu progresso hoje"}
+          </p>
+          <p className="mt-1 font-editorial text-lg italic">
             {completed.length} de {list.length || "—"} hábitos concluídos
           </p>
         </div>
       </section>
 
-      <section className="surface rise mt-5 overflow-hidden p-5">
-        <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Próxima ação</p>
-        <h2 className="mt-2 font-editorial text-xl text-foreground">{next.text}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{next.detail}</p>
-        <Link
-          to={next.href}
-          className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
-        >
-          Concluir <ArrowRight className="size-4" />
-        </Link>
+      <section className="surface rise mt-5 overflow-hidden p-5" style={stagger(1)}>
+        {dayJustCompleted ? (
+          <>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              Resumo do dia
+            </p>
+            <h2 className="mt-2 font-editorial text-xl italic text-foreground">
+              Todas as ações de hoje, concluídas.
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Constância importa mais que perfeição — volte amanhã para manter sua sequência.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+              Próxima ação
+            </p>
+            <h2 className="mt-2 font-editorial text-xl text-foreground">{next.text}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{next.detail}</p>
+            {pending.length > 0 ? (
+              <p className="mt-1 text-xs font-medium text-primary">
+                Faltam {pending.length} {pending.length === 1 ? "ação" : "ações"} para fechar o
+                dia.
+              </p>
+            ) : null}
+            <Link
+              to={next.href}
+              className="lift mt-4 inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold text-primary-foreground"
+              style={{ background: "var(--gradient-primary)" }}
+            >
+              Concluir <ArrowRight className="size-4" />
+            </Link>
+          </>
+        )}
       </section>
 
-      <Challenge30Card
-        completedDays={completedDays}
-        todayDay={todayChallengeDay}
-        pending={completeDay.isPending}
-        onCompleteToday={handleCompleteDay}
-      />
+      <div style={stagger(2)}>
+        <Challenge30Card
+          completedDays={completedDays}
+          todayDay={todayChallengeDay}
+          pending={completeDay.isPending}
+          onCompleteToday={handleCompleteDay}
+        />
+      </div>
 
-      <section className="surface mt-5 p-5">
+      <section className="surface rise mt-5 p-5" style={stagger(3)}>
         <div className="flex items-center justify-between">
           <h2 className="text-lg">Missões do dia</h2>
           <span className="text-xs text-muted-foreground">
             {completed.length} concluídas · {pending.length} pendentes
           </span>
         </div>
+        {list.length > 0 ? (
+          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
+              style={{ width: `${(completed.length / list.length) * 100}%` }}
+            />
+          </div>
+        ) : null}
         {missions.isLoading ? (
           <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
         ) : (
           <ul className="mt-4 space-y-2">
-            {list.map((m) => (
-              <li key={m.id}>
+            {list.map((m, i) => (
+              <li key={m.id} className="rise" style={stagger(i)}>
                 <DailyMissionCard
                   title={m.title}
                   detail={m.detail}
@@ -249,7 +322,7 @@ function Home() {
         }
       />
 
-      <section className="surface mt-5 p-5">
+      <section className="surface rise mt-5 p-5" style={stagger(4)}>
         <h2 className="text-lg">Sua semana</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Percentual de missões concluídas em cada dia.
@@ -259,7 +332,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="mt-5">
+      <section className="rise mt-5" style={stagger(5)}>
         <div className="flex items-center justify-between px-1">
           <h2 className="text-lg">Seus pilares</h2>
         </div>
@@ -284,8 +357,8 @@ function Home() {
         </div>
       </section>
 
-      <section className="mt-5">
-        <Link to="/dieta" className="surface flex items-center justify-between p-4">
+      <section className="rise mt-5" style={stagger(6)}>
+        <Link to="/dieta" className="lift surface flex items-center justify-between p-4">
           <span className="flex items-center gap-3">
             <Salad className="size-5 text-leaf" />
             Plano e refeições

@@ -5,13 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * APOLO design system — "Wellness Premium"
- * Azul #446CB3 como cor de destaque, off-white como base, tons quentes
- * (terracota, dourado, verde) reservados para estados semânticos.
- * Todas as cores em oklch. Nunca usar cores literais nos componentes.
- *
- * --background é PROVISÓRIO: valor pedido (#FBFEC) estava incompleto,
- * usando #FBFEFC até confirmação. Trocar só este token no dia.
+ * APOLO design system — "Wellness Editorial"
+ * Azul #446CB3 como cor de destaque sobre um marfim quente; terracota e
+ * dourado sobem de estados semânticos pontuais para acentos de marca.
+ * Todas as cores em oklch, tonalidade e croma alinhados entre si para
+ * manter a paleta harmônica. Nunca usar cores literais nos componentes.
  */
 
 @theme inline {
@@ -23,9 +21,9 @@
   --radius-3xl: calc(var(--radius) + 20px);
   --radius-4xl: calc(var(--radius) + 28px);
 
-  --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-editorial: "Lora", ui-serif, Georgia, serif;
+  --font-editorial: "Fraunces", ui-serif, Georgia, serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -72,22 +70,31 @@
   --color-pillar-habits: var(--pillar-habits);
 
   --shadow-soft:
-    0 1px 2px oklch(0.24 0.05 155 / 0.05), 0 12px 32px -18px oklch(0.24 0.05 155 / 0.35);
-  --shadow-lifted: 0 24px 60px -30px oklch(0.24 0.05 155 / 0.45);
+    0 1px 2px oklch(0.25 0.05 264 / 0.06), 0 12px 32px -18px oklch(0.25 0.05 264 / 0.35);
+  --shadow-lifted: 0 24px 60px -30px oklch(0.25 0.05 264 / 0.45);
+  --shadow-glow-gold: 0 0 0 1px color-mix(in oklab, var(--gold) 40%, transparent),
+    0 16px 40px -18px color-mix(in oklab, var(--gold) 55%, transparent);
+
+  --gradient-primary: linear-gradient(
+    155deg,
+    color-mix(in oklab, var(--primary) 78%, black) 0%,
+    var(--primary) 100%
+  );
+  --gradient-solar: linear-gradient(135deg, var(--gold) 0%, var(--terracotta) 100%);
 }
 
 :root {
   --radius: 0.875rem;
 
-  /* Off-white #FBFEFC — PROVISÓRIO, ver nota acima */
-  --background: oklch(0.994 0.004 157.2);
-  /* Navy de leitura, par de contraste do azul primário */
-  --foreground: oklch(0.252 0.056 264);
+  /* Marfim quente — papel do produto, harmoniza com terracota/dourado */
+  --background: oklch(0.973 0.012 85);
+  /* Tinta índigo, par de contraste do azul primário */
+  --foreground: oklch(0.246 0.045 267);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.252 0.056 264);
+  --card-foreground: oklch(0.246 0.045 267);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.252 0.056 264);
+  --popover-foreground: oklch(0.246 0.045 267);
 
   /* Primary Blue #446CB3 */
   --primary: oklch(0.536 0.121 261.1);
@@ -97,8 +104,9 @@
   --secondary: oklch(0.94 0.02 261);
   --secondary-foreground: oklch(0.4 0.1 261);
 
-  --muted: oklch(0.955 0.006 260);
-  --muted-foreground: oklch(0.5 0.02 260);
+  /* Neutros levemente quentes, alinhados ao papel marfim */
+  --muted: oklch(0.95 0.012 85);
+  --muted-foreground: oklch(0.5 0.018 267);
 
   --accent: oklch(0.536 0.121 261.1);
   --accent-foreground: oklch(1 0 0);
@@ -107,35 +115,36 @@
   --destructive: oklch(0.58 0.19 25);
   --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.89 0.012 260);
-  --input: oklch(0.85 0.014 260);
+  --border: oklch(0.9 0.014 80);
+  --input: oklch(0.86 0.016 80);
   --ring: oklch(0.536 0.121 261.1);
 
   /* "leaf" mantém o nome (usado em ~40 lugares) mas agora carrega o azul primário */
   --leaf: oklch(0.536 0.121 261.1);
   --leaf-foreground: oklch(1 0 0);
-  --sand: oklch(0.95 0.015 261);
-  /* Dourado — reservado para destaques premium pontuais */
-  --gold: oklch(0.744 0.093 87);
-  --gold-foreground: oklch(0.252 0.056 264);
+  --sand: oklch(0.95 0.015 85);
+  /* Dourado — acento de marca: recompensas, streak, celebração */
+  --gold: oklch(0.76 0.1 83);
+  --gold-foreground: oklch(0.246 0.045 267);
   /* Verde de sucesso/positivo — estado semântico, não é mais a cor de marca */
   --success: oklch(0.687 0.084 137);
-  /* Terracota — reservado para "atenção" (ex.: scanner de produtos) */
-  --terracotta: oklch(0.652 0.111 44);
+  /* Terracota — acento de marca: streak, CTAs quentes, destaque pontual */
+  --terracotta: oklch(0.64 0.13 42);
 
   --chart-1: oklch(0.536 0.121 261.1);
   --chart-2: oklch(0.62 0.1 255);
   --chart-3: oklch(0.687 0.084 137);
-  --chart-4: oklch(0.744 0.093 87);
-  --chart-5: oklch(0.652 0.111 44);
+  --chart-4: oklch(0.76 0.1 83);
+  --chart-5: oklch(0.64 0.13 42);
 
-  /* Paleta secundária por pilar (Etapa 2 do redesign gamificado) */
-  --pillar-food: oklch(0.759 0.097 29); /* coral suave */
-  --pillar-movement: oklch(0.701 0.093 259.4); /* azul */
-  --pillar-sleep: oklch(0.758 0.08 297.8); /* lilás */
-  --pillar-light: oklch(0.836 0.143 87.8); /* amarelo solar */
-  --pillar-presence: oklch(0.803 0.086 353.3); /* rosa */
-  --pillar-habits: oklch(0.81 0.063 257.5); /* azul claro */
+  /* Paleta secundária por pilar — mesma faixa de luminosidade/croma para
+     soarem como uma família (roda de matizes espaçada, tom sobre tom). */
+  --pillar-food: oklch(0.755 0.1 32); /* coral */
+  --pillar-movement: oklch(0.7 0.1 259.4); /* azul */
+  --pillar-sleep: oklch(0.75 0.09 296); /* lilás */
+  --pillar-light: oklch(0.78 0.1 83); /* âmbar solar */
+  --pillar-presence: oklch(0.77 0.09 353); /* rosa */
+  --pillar-habits: oklch(0.74 0.09 149); /* verde-sálvia */
 }
 
 @layer base {
@@ -169,14 +178,37 @@
 }
 
 @utility surface-deep {
-  background-color: var(--primary);
+  background: var(--gradient-primary);
   color: var(--primary-foreground);
   border-radius: var(--radius-2xl);
-  box-shadow: 0 12px 30px -22px color-mix(in oklab, var(--primary) 60%, transparent);
+  box-shadow: 0 20px 44px -22px color-mix(in oklab, var(--primary) 65%, transparent);
+}
+
+@utility surface-solar {
+  background: var(--gradient-solar);
+  color: var(--foreground);
+  border-radius: var(--radius-2xl);
+  box-shadow: 0 20px 44px -20px color-mix(in oklab, var(--terracotta) 55%, transparent);
 }
 
 @utility rise {
   animation: nativo-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--stagger, 0ms);
+}
+
+@utility lift {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-soft);
+  }
+  &:active {
+    transform: translateY(-1px) scale(0.99);
+  }
 }
 
 @keyframes nativo-rise {
@@ -232,6 +264,26 @@
 
 @utility pop-in {
   animation: nativo-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes nativo-tick {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@utility tick {
+  animation: nativo-tick 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@utility glow-gold {
+  box-shadow: var(--shadow-glow-gold);
 }
 
 @media (prefers-reduced-motion: reduce) {

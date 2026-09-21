@@ -169,7 +169,7 @@ function AuthPage() {
         </button>
       </div>
 
-      <p className="mt-6 text-center font-editorial text-sm text-accent">
+      <p className="mt-6 text-center font-editorial text-sm italic text-accent">
         "Menos controle. Mais consciência."
       </p>
     </div>

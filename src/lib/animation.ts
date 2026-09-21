@@ -43,6 +43,27 @@ export function useCountUp(target: number, durationMs = 800): number {
   return value;
 }
 
+/**
+ * Incrementa a cada vez que `value` sobe em relação ao render anterior — nunca
+ * no mount. Usar como `key` para forçar remount de um badge e disparar a
+ * animação `.tick` (ex.: saldo de moedas, streak) quando o valor aumenta.
+ */
+export function usePulseOnIncrease(value: number): number {
+  const prev = useRef(value);
+  const mounted = useRef(false);
+  const [pulse, setPulse] = useState(0);
+
+  useEffect(() => {
+    if (mounted.current && value > prev.current) {
+      setPulse((p) => p + 1);
+    }
+    mounted.current = true;
+    prev.current = value;
+  }, [value]);
+
+  return pulse;
+}
+
 /** true assim que o elemento entra na viewport (uma vez só — para disparar animações de gráfico). */
 export function useInViewport<T extends Element>(): [React.RefObject<T | null>, boolean] {
   const ref = useRef<T | null>(null);

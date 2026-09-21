@@ -39,12 +39,15 @@ export function PillarCard({
   return (
     <Link
       to={href}
-      className="surface flex w-40 shrink-0 flex-col gap-2 p-4 snap-start sm:w-auto"
-      style={{ borderColor: `color-mix(in oklab, ${color} 35%, var(--border))` }}
+      className="lift surface flex w-40 shrink-0 flex-col gap-2 p-4 snap-start sm:w-auto"
+      style={{
+        borderColor: `color-mix(in oklab, ${color} 35%, var(--border))`,
+        backgroundImage: `linear-gradient(165deg, color-mix(in oklab, ${color} 10%, var(--card)), var(--card) 65%)`,
+      }}
     >
       <span
         className="flex size-8 items-center justify-center rounded-full"
-        style={{ backgroundColor: `color-mix(in oklab, ${color} 18%, transparent)`, color }}
+        style={{ backgroundColor: `color-mix(in oklab, ${color} 20%, transparent)`, color }}
       >
         <Icon className="size-4" strokeWidth={1.8} />
       </span>
