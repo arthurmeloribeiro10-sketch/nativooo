@@ -179,6 +179,21 @@ function Home() {
         </div>
       </section>
 
+      <BodyRoutinePreview
+        uv={sun.data?.currentUv ?? (place ? (sun.data?.uvPeak ?? null) : null)}
+        uvPeakTime={guidance ? (sun.data?.currentTime?.slice(11, 16) ?? null) : null}
+        steps={stepsToday?.steps ?? null}
+        stepGoal={profile.data?.step_goal ?? 10000}
+        sleepHours={sleepLatest?.hours ?? null}
+        sleepQualityLabel={
+          sleepLatest
+            ? sleepLatest.quality >= 70
+              ? "Boa recuperação"
+              : "Recuperação parcial"
+            : null
+        }
+      />
+
       <section className="surface rise mt-5 overflow-hidden p-5">
         <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Próxima ação</p>
         <h2 className="mt-2 font-editorial text-xl text-foreground">{next.text}</h2>
@@ -233,21 +248,6 @@ function Home() {
           </ul>
         )}
       </section>
-
-      <BodyRoutinePreview
-        uv={sun.data?.currentUv ?? (place ? (sun.data?.uvPeak ?? null) : null)}
-        uvPeakTime={guidance ? (sun.data?.currentTime?.slice(11, 16) ?? null) : null}
-        steps={stepsToday?.steps ?? null}
-        stepGoal={profile.data?.step_goal ?? 10000}
-        sleepHours={sleepLatest?.hours ?? null}
-        sleepQualityLabel={
-          sleepLatest
-            ? sleepLatest.quality >= 70
-              ? "Boa recuperação"
-              : "Recuperação parcial"
-            : null
-        }
-      />
 
       <section className="surface mt-5 p-5">
         <h2 className="text-lg">Sua semana</h2>
