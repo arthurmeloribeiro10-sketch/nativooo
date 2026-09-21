@@ -766,6 +766,41 @@ export function computePillars(input: {
   ];
 }
 
+/**
+ * Série diária (últimos N dias) do mesmo cálculo usado em computePillars,
+ * pilar a pilar — para as mini-sparklines dos PillarCard na Home. Reaproveita
+ * as fórmulas reais; nunca inventa dado. "alimentacao" retorna só `null`
+ * porque hoje só existe histórico de refeições do dia atual (useMeals não
+ * busca a semana) — ver pendências no resumo da sessão.
+ */
+export function computePillarTrend(input: {
+  key: string;
+  missions: MissionRow[];
+  steps: StepRow[];
+  sleep: SleepRow[];
+  stepGoal: number;
+  days: string[];
+}): Array<number | null> {
+  const { key, missions, steps, sleep, stepGoal, days } = input;
+  const pct = (v: number) => Math.max(0, Math.min(100, Math.round(v * 100)));
+
+  return days.map((day) => {
+    if (key === "movimento") {
+      const row = steps.find((s) => s.day === day);
+      return row ? pct(row.steps / stepGoal) : null;
+    }
+    if (key === "sono") {
+      const row = sleep.find((s) => s.day === day);
+      return row ? pct((Math.min(row.hours, 8) / 8) * 0.6 + (row.quality / 100) * 0.4) : null;
+    }
+    if (key === "alimentacao") return null;
+
+    const dayMissions = missions.filter((m) => m.day === day && m.pillar === key);
+    const recorded = dayMissions.filter((m) => m.status !== "pending");
+    return recorded.length ? pct(recorded.filter((m) => m.status === "done").length / recorded.length) : null;
+  });
+}
+
 export function averageScore(pillars: PillarScore[]): number | null {
   const recorded = pillars.filter((p): p is PillarScore & { score: number } => p.score !== null);
   if (!recorded.length) return null;

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-type ScannerStatus = "idle" | "starting" | "scanning" | "permission_denied" | "unsupported" | "error";
+type ScannerStatus =
+  "idle" | "starting" | "scanning" | "permission_denied" | "unsupported" | "error";
 
 declare global {
   interface Window {
@@ -50,7 +51,8 @@ export function useBarcodeScanner(onDetected: (barcode: string) => void) {
       }
 
       const [track] = stream.getVideoTracks();
-      const caps = track?.getCapabilities?.() as (MediaTrackCapabilities & { torch?: boolean }) | undefined;
+      const caps = track?.getCapabilities?.() as
+        (MediaTrackCapabilities & { torch?: boolean }) | undefined;
       setTorchSupported(Boolean(caps?.torch));
 
       if (!detectorSupported || !window.BarcodeDetector) {
@@ -73,7 +75,10 @@ export function useBarcodeScanner(onDetected: (barcode: string) => void) {
         }
       }, DETECT_INTERVAL_MS);
     } catch (e) {
-      if (e instanceof DOMException && (e.name === "NotAllowedError" || e.name === "PermissionDeniedError")) {
+      if (
+        e instanceof DOMException &&
+        (e.name === "NotAllowedError" || e.name === "PermissionDeniedError")
+      ) {
         setStatus("permission_denied");
       } else {
         setStatus("error");

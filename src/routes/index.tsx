@@ -1,37 +1,298 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Check, Flame, Salad, Sun } from "lucide-react";
+import { ArrowRight, Salad } from "lucide-react";
 import { toast } from "sonner";
-import heroImage from "@/assets/nativo-hero.jpg";
-import { AppShell } from "@/components/nativo/AppShell";
-import { PillarBar } from "@/components/nativo/PillarBar";
-import { ScoreRing } from "@/components/nativo/ScoreRing";
-import { useAuth } from "@/lib/auth-context";
-import { firstName, plural } from "@/lib/format";
-import { averageScore, computePillars, computeStreak, lastDays, today, useMeals, useMissions, useMissionsWeek, useProfile, useProtocol, useSleepWeek, useStepsWeek, useToggleMission, weekdayLabel } from "@/lib/nativo-queries";
 
-export const Route = createFileRoute("/")({ head: () => ({ meta: [
-  { title: "APOLO — Hábitos naturais para hoje" }, { name: "description", content: "Veja suas ações do dia, registre hábitos e acompanhe seu progresso no APOLO." },
-  { property: "og:title", content: "APOLO — Hábitos naturais para hoje" }, { property: "og:description", content: "Alimentação, movimento, sono, ar livre e constância em ações simples." },
-  { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
-] }), component: Home });
+import { AppShell } from "@/components/nativo/AppShell";
+import { ScoreRing } from "@/components/nativo/ScoreRing";
+import { StreakBadge } from "@/components/nativo/StreakBadge";
+import { CoinBalance } from "@/components/nativo/CoinBalance";
+import { Challenge30Card } from "@/components/nativo/Challenge30Card";
+import { DailyMissionCard } from "@/components/nativo/DailyMissionCard";
+import { BodyRoutinePreview } from "@/components/nativo/BodyRoutinePreview";
+import { WeeklyBarChart } from "@/components/nativo/WeeklyBarChart";
+import { PillarCard } from "@/components/nativo/PillarCard";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/lib/auth-context";
+import { firstName } from "@/lib/format";
+import { useSunIndex, uvLevel } from "@/lib/sun";
+import { useWalletBalance, useCompleteChallengeDay } from "@/lib/gamification/queries";
+import {
+  averageScore,
+  computePillars,
+  computePillarTrend,
+  computeStreak,
+  lastDays,
+  today,
+  useMeals,
+  useMissions,
+  useMissionsWeek,
+  useProfile,
+  useProtocol,
+  useSleepWeek,
+  useStepsWeek,
+  useToggleMission,
+  weekdayLabel,
+} from "@/lib/nativo-queries";
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "APOLO — Hábitos naturais para hoje" },
+      {
+        name: "description",
+        content: "Veja suas ações do dia, registre hábitos e acompanhe seu progresso no APOLO.",
+      },
+      { property: "og:title", content: "APOLO — Hábitos naturais para hoje" },
+      {
+        property: "og:description",
+        content: "Alimentação, movimento, sono, ar livre e constância em ações simples.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: Home,
+});
+
+function greeting(hour: number) {
+  if (hour < 12) return "Bom dia";
+  if (hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
 
 function Home() {
-  const { user } = useAuth(); const userId = user?.id;
-  const profile = useProfile(userId); const missions = useMissions(userId); const missionsWeek = useMissionsWeek(userId); const meals = useMeals(userId); const steps = useStepsWeek(userId); const sleep = useSleepWeek(userId); const protocol = useProtocol(userId); const toggle = useToggleMission(userId);
-  const pillars = computePillars({ meals: meals.data ?? [], missions: missions.data ?? [], steps: steps.data ?? [], sleep: sleep.data ?? [], stepGoal: profile.data?.step_goal ?? 10000, mealGoal: profile.data?.meal_goal ?? 4 });
-  const score = averageScore(pillars); const recorded = pillars.filter((p) => p.score !== null).length; const list = missions.data ?? []; const pending = list.filter((m) => m.status === "pending"); const completed = list.filter((m) => m.status === "done"); const skipped = list.filter((m) => m.status === "skipped"); const streak = computeStreak(missionsWeek.data ?? []); const protocolDays = (protocol.data ?? []).length;
-  const hour = Number(new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", hour12: false, timeZone: profile.data?.timezone || undefined }).format(new Date()));
-  const next = pending[0] ? { text: pending[0].title, href: "/registro" as const } : (meals.data ?? []).length === 0 ? { text: "Faça seu primeiro registro do dia", href: "/registro" as const } : hour < 18 ? { text: "Confira seus passos e o UV atual", href: "/corpo" as const } : { text: "Registre como foi seu sono", href: "/corpo" as const };
-  const week = lastDays(7).map((day) => { const rows = (missionsWeek.data ?? []).filter((m) => m.day === day && m.status !== "pending"); return { day, label: weekdayLabel(day), score: rows.length ? Math.round(rows.filter((m) => m.status === "done").length / rows.length * 100) : null }; });
-  const stateLabel = score === null ? "Aguardando seus primeiros registros" : recorded < pillars.length ? "Resumo parcial do dia" : "Progresso dos hábitos registrados";
+  const { user } = useAuth();
+  const userId = user?.id;
 
-  return <AppShell>
-    <header className="mb-4"><p className="text-sm text-muted-foreground">Olá, {firstName(profile.data?.display_name)}</p><h1 className="mt-1 text-3xl">O que você tem para hoje</h1></header>
-    <section className="surface-deep rise overflow-hidden"><div className="grid items-center gap-4 p-5 sm:grid-cols-[1fr_auto]"><div><p className="text-xs uppercase tracking-[0.12em] opacity-75">Próxima ação</p><h2 className="mt-2 font-editorial text-xl">{next.text}</h2><p className="mt-2 text-sm opacity-80">{stateLabel}. Ausência de registro não reduz seu progresso.</p><Link to={next.href} className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary-foreground px-4 text-sm font-semibold text-primary">Começar agora <ArrowRight className="size-4"/></Link></div><ScoreRing score={score}/></div><img src={heroImage} alt="Comida de verdade em uma rotina iluminada pela manhã" width={1600} height={1008} className="h-20 w-full object-cover sm:h-24"/></section>
-    <section className="mt-5 grid grid-cols-3 gap-2"><div className="surface p-3"><p className="text-lg font-semibold">{score ?? "—"}{score === null ? "" : "%"}</p><p className="text-[11px] text-muted-foreground">progresso registrado</p></div><div className="surface p-3"><p className="text-lg font-semibold">{plural(streak, "dia")}</p><p className="text-[11px] text-muted-foreground">sequência</p></div><Link to="/protocolo" className="surface p-3"><p className="text-lg font-semibold">{protocolDays}/30</p><p className="text-[11px] text-muted-foreground">protocolo</p></Link></section>
-    <section className="surface mt-5 p-5"><div className="flex items-center justify-between"><h2 className="text-lg">Missões do dia</h2><span className="text-xs text-muted-foreground">{completed.length} concluídas · {pending.length} pendentes</span></div>{missions.isLoading ? <p className="mt-4 text-sm text-muted-foreground">Carregando…</p> : <><ul className="mt-4 space-y-2">{pending.map((m) => <li key={m.id}><button disabled={toggle.isPending} onClick={() => toggle.mutate({ id: m.id, status: "done" }, { onSuccess: () => toast.success("Missão concluída."), onError: () => toast.error("Não foi possível salvar. Tente novamente.") })} className="flex min-h-12 w-full items-start gap-3 rounded-lg border border-border bg-background/50 p-3 text-left"><span className="mt-0.5 size-5 shrink-0 rounded-full border border-border"/><span><span className="block text-sm font-medium">{m.title}</span><span className="mt-1 block text-xs text-muted-foreground">{m.detail}</span></span></button></li>)}</ul>{completed.length ? <details className="mt-3"><summary className="cursor-pointer text-xs font-medium text-muted-foreground">Concluídas ({completed.length})</summary><ul className="mt-2 space-y-2">{completed.map((m) => <li key={m.id}><button onClick={() => toggle.mutate({ id: m.id, status: "pending" }, { onSuccess: () => toast.success("Missão voltou para pendentes.") })} className="flex w-full items-center gap-3 rounded-lg border border-success/40 bg-success/10 p-3 text-left text-sm"><span className="flex size-5 items-center justify-center rounded-full bg-success"><Check className="size-3"/></span><span className="line-through">{m.title}</span></button></li>)}</ul></details> : null}{skipped.length ? <p className="mt-3 text-xs text-muted-foreground">{skipped.length} {skipped.length === 1 ? "missão marcada" : "missões marcadas"} como não realizada.</p> : null}</> }</section>
-    <section className="surface mt-5 p-5"><h2 className="text-lg">Evolução recente</h2><p className="mt-1 text-xs text-muted-foreground">Percentual de missões registradas como concluídas em cada dia.</p><div className="mt-5 flex h-28 items-end gap-2">{week.map((d) => <div key={d.day} className="flex flex-1 flex-col items-center gap-2"><div className={`w-full rounded-t ${d.score === null ? "bg-border" : "bg-leaf/80"}`} style={{ height: d.score === null ? 3 : `${Math.max(d.score * .75, 4)}px` }}/><span className="text-[10px] text-muted-foreground">{d.label}</span></div>)}</div></section>
-    <section className="surface mt-5 p-5"><h2 className="text-lg">Seus pilares</h2><p className="mt-1 text-xs text-muted-foreground">O percentual considera somente pilares com dados. Refeições, passos, último sono e missões têm o mesmo peso; unidades não são somadas entre si.</p><div className="mt-3 divide-y divide-border">{pillars.map((p) => <div key={p.key} className="grid grid-cols-[1fr_auto] items-center gap-3"><PillarBar label={p.label} score={p.score} note={p.note}/><Link to={p.href} className="rounded-lg border border-border px-3 py-2 text-xs font-medium">Abrir</Link></div>)}</div></section>
-    <section className="mt-5 grid gap-3 sm:grid-cols-2"><Link to="/dieta" className="surface flex items-center justify-between p-4"><span className="flex items-center gap-3"><Salad className="size-5 text-leaf"/>Plano e refeições</span><ArrowRight className="size-4"/></Link><Link to="/corpo" className="surface flex items-center justify-between p-4"><span className="flex items-center gap-3"><Sun className="size-5 text-gold"/>UV, passos e sono</span><ArrowRight className="size-4"/></Link></section>
-  </AppShell>;
+  const profile = useProfile(userId);
+  const missions = useMissions(userId);
+  const missionsWeek = useMissionsWeek(userId);
+  const meals = useMeals(userId);
+  const steps = useStepsWeek(userId);
+  const sleep = useSleepWeek(userId);
+  const protocol = useProtocol(userId);
+  const toggle = useToggleMission(userId);
+  const wallet = useWalletBalance(userId);
+  const completeDay = useCompleteChallengeDay(userId);
+  const { place, sun } = useSunIndex();
+
+  const pillars = computePillars({
+    meals: meals.data ?? [],
+    missions: missions.data ?? [],
+    steps: steps.data ?? [],
+    sleep: sleep.data ?? [],
+    stepGoal: profile.data?.step_goal ?? 10000,
+    mealGoal: profile.data?.meal_goal ?? 4,
+  });
+  const score = averageScore(pillars);
+  const list = missions.data ?? [];
+  const pending = list.filter((m) => m.status === "pending");
+  const completed = list.filter((m) => m.status === "done");
+  const streak = computeStreak(missionsWeek.data ?? []);
+  const completedDays = protocol.data ?? [];
+  const todayChallengeDay = Math.min(30, completedDays.length + 1);
+
+  const hour = Number(
+    new Intl.DateTimeFormat("pt-BR", {
+      hour: "2-digit",
+      hour12: false,
+      timeZone: profile.data?.timezone || undefined,
+    }).format(new Date()),
+  );
+  const next = pending[0]
+    ? { text: pending[0].title, detail: pending[0].detail, href: "/registro" as const }
+    : (meals.data ?? []).length === 0
+      ? {
+          text: "Faça seu primeiro registro do dia",
+          detail: "Uma refeição, um hábito — o que fizer sentido agora.",
+          href: "/registro" as const,
+        }
+      : hour < 18
+        ? {
+            text: "Confira seus passos e o UV atual",
+            detail: "Aproveite a luz do dia.",
+            href: "/corpo" as const,
+          }
+        : {
+            text: "Registre como foi seu sono",
+            detail: "Fecha bem o dia de hoje.",
+            href: "/corpo" as const,
+          };
+
+  const days7 = lastDays(7);
+  const week = days7.map((day) => {
+    const rows = (missionsWeek.data ?? []).filter((m) => m.day === day && m.status !== "pending");
+    return {
+      label: weekdayLabel(day),
+      value: rows.length
+        ? Math.round((rows.filter((m) => m.status === "done").length / rows.length) * 100)
+        : null,
+    };
+  });
+
+  const stepsToday = (steps.data ?? []).find((s) => s.day === today());
+  const sleepLatest = [...(sleep.data ?? [])].sort((a, b) => b.day.localeCompare(a.day))[0];
+  const guidance = sun.data ? uvLevel(sun.data.currentUv ?? sun.data.uvPeak) : null;
+
+  const handleCompleteDay = () => {
+    completeDay.mutate(todayChallengeDay, {
+      onSuccess: (result) => {
+        if (result.dayCompleted && result.coinsAwarded > 0) {
+          toast.success(`Dia concluído ☀️ Você manteve sua sequência.`, {
+            description: `+${result.coinsAwarded} moedas`,
+          });
+        } else if (result.dayCompleted) {
+          toast.success("Dia concluído ☀️");
+        }
+      },
+      onError: () => toast.error("Não foi possível concluir o dia. Tente novamente."),
+    });
+  };
+
+  return (
+    <AppShell>
+      <header className="mb-5 flex items-center justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            {greeting(hour)}, {firstName(profile.data?.display_name)} 👋
+          </p>
+          <h1 className="mt-1 text-2xl">Continue construindo sua melhor versão.</h1>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <StreakBadge days={streak} />
+          <CoinBalance balance={wallet.data ?? 0} />
+          <Avatar className="size-9">
+            <AvatarFallback className="bg-secondary text-sm font-semibold text-primary">
+              {firstName(profile.data?.display_name).slice(0, 1).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      </header>
+
+      <section className="surface-deep rise flex items-center gap-4 p-5">
+        <ScoreRing score={score} size={92} />
+        <div>
+          <p className="text-xs uppercase tracking-[0.12em] opacity-75">Seu progresso hoje</p>
+          <p className="mt-1 font-editorial text-lg">
+            {completed.length} de {list.length || "—"} hábitos concluídos
+          </p>
+        </div>
+      </section>
+
+      <section className="surface rise mt-5 overflow-hidden p-5">
+        <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Próxima ação</p>
+        <h2 className="mt-2 font-editorial text-xl text-foreground">{next.text}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{next.detail}</p>
+        <Link
+          to={next.href}
+          className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"
+        >
+          Concluir <ArrowRight className="size-4" />
+        </Link>
+      </section>
+
+      <Challenge30Card
+        completedDays={completedDays}
+        todayDay={todayChallengeDay}
+        pending={completeDay.isPending}
+        onCompleteToday={handleCompleteDay}
+      />
+
+      <section className="surface mt-5 p-5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg">Missões do dia</h2>
+          <span className="text-xs text-muted-foreground">
+            {completed.length} concluídas · {pending.length} pendentes
+          </span>
+        </div>
+        {missions.isLoading ? (
+          <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
+        ) : (
+          <ul className="mt-4 space-y-2">
+            {list.map((m) => (
+              <li key={m.id}>
+                <DailyMissionCard
+                  title={m.title}
+                  detail={m.detail}
+                  done={m.status === "done"}
+                  disabled={toggle.isPending}
+                  onToggle={() =>
+                    toggle.mutate(
+                      { id: m.id, status: m.status === "done" ? "pending" : "done" },
+                      {
+                        onSuccess: () => {
+                          if (m.status !== "done") toast.success("Missão concluída.");
+                        },
+                        onError: () => toast.error("Não foi possível salvar. Tente novamente."),
+                      },
+                    )
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <BodyRoutinePreview
+        uv={sun.data?.currentUv ?? (place ? (sun.data?.uvPeak ?? null) : null)}
+        uvPeakTime={guidance ? (sun.data?.currentTime?.slice(11, 16) ?? null) : null}
+        steps={stepsToday?.steps ?? null}
+        stepGoal={profile.data?.step_goal ?? 10000}
+        sleepHours={sleepLatest?.hours ?? null}
+        sleepQualityLabel={
+          sleepLatest
+            ? sleepLatest.quality >= 70
+              ? "Boa recuperação"
+              : "Recuperação parcial"
+            : null
+        }
+      />
+
+      <section className="surface mt-5 p-5">
+        <h2 className="text-lg">Sua semana</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Percentual de missões concluídas em cada dia.
+        </p>
+        <div className="mt-5">
+          <WeeklyBarChart data={week} />
+        </div>
+      </section>
+
+      <section className="mt-5">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-lg">Seus pilares</h2>
+        </div>
+        <div className="mt-3 flex snap-x gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible">
+          {pillars.map((p) => (
+            <PillarCard
+              key={p.key}
+              pillarKey={p.key}
+              label={p.label}
+              score={p.score}
+              href={p.href}
+              trend={computePillarTrend({
+                key: p.key,
+                missions: missionsWeek.data ?? [],
+                steps: steps.data ?? [],
+                sleep: sleep.data ?? [],
+                stepGoal: profile.data?.step_goal ?? 10000,
+                days: days7,
+              })}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-5">
+        <Link to="/dieta" className="surface flex items-center justify-between p-4">
+          <span className="flex items-center gap-3">
+            <Salad className="size-5 text-leaf" />
+            Plano e refeições
+          </span>
+          <ArrowRight className="size-4" />
+        </Link>
+      </section>
+    </AppShell>
+  );
 }

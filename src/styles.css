@@ -62,6 +62,15 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
+  /* Paleta secundária por pilar — saturação controlada, uso pontual (ícone,
+     mini-gráfico, badge), nunca como preenchimento grande de tela. */
+  --color-pillar-food: var(--pillar-food);
+  --color-pillar-movement: var(--pillar-movement);
+  --color-pillar-sleep: var(--pillar-sleep);
+  --color-pillar-light: var(--pillar-light);
+  --color-pillar-presence: var(--pillar-presence);
+  --color-pillar-habits: var(--pillar-habits);
+
   --shadow-soft: 0 1px 2px oklch(0.24 0.05 155 / 0.05), 0 12px 32px -18px oklch(0.24 0.05 155 / 0.35);
   --shadow-lifted: 0 24px 60px -30px oklch(0.24 0.05 155 / 0.45);
 }
@@ -118,6 +127,14 @@
   --chart-3: oklch(0.687 0.084 137);
   --chart-4: oklch(0.744 0.093 87);
   --chart-5: oklch(0.652 0.111 44);
+
+  /* Paleta secundária por pilar (Etapa 2 do redesign gamificado) */
+  --pillar-food: oklch(0.759 0.097 29); /* coral suave */
+  --pillar-movement: oklch(0.701 0.093 259.4); /* azul */
+  --pillar-sleep: oklch(0.758 0.08 297.8); /* lilás */
+  --pillar-light: oklch(0.836 0.143 87.8); /* amarelo solar */
+  --pillar-presence: oklch(0.803 0.086 353.3); /* rosa */
+  --pillar-habits: oklch(0.81 0.063 257.5); /* azul claro */
 }
 
 @layer base {

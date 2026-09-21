@@ -90,16 +90,13 @@ function PerfilPage() {
 
   return (
     <AppShell>
-      <PageTitle
-        title={profile.data?.display_name ?? "Seu perfil"}
-        subtitle={user?.email ?? ""}
-      />
+      <PageTitle title={profile.data?.display_name ?? "Seu perfil"} subtitle={user?.email ?? ""} />
 
       <section className="surface grid grid-cols-3 divide-x divide-border/60 p-5 text-center">
         <div>
           <Leaf className="mx-auto size-5 text-leaf" strokeWidth={1.6} />
-           <p className="mt-2 font-display text-lg font-semibold">{score ?? "—"}</p>
-           <p className="text-[11px] text-muted-foreground">Progresso registrado</p>
+          <p className="mt-2 font-display text-lg font-semibold">{score ?? "—"}</p>
+          <p className="text-[11px] text-muted-foreground">Progresso registrado</p>
         </div>
         <div>
           <Flame className="mx-auto size-5 text-terracotta" strokeWidth={1.6} />
@@ -133,13 +130,46 @@ function PerfilPage() {
           onChange={(e) => setNome(e.target.value)}
           className="mt-2 w-full rounded-2xl border border-input bg-background/70 px-4 py-3 text-sm outline-none focus:border-leaf"
         />
-        <label htmlFor="meta-refeicoes" className="mt-4 block text-sm font-medium">Quantidade planejada de refeições</label>
-        <input id="meta-refeicoes" type="number" min={1} max={10} value={metaRefeicoes} onChange={(e) => setMetaRefeicoes(e.target.value)} className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm" />
+        <label htmlFor="meta-refeicoes" className="mt-4 block text-sm font-medium">
+          Quantidade planejada de refeições
+        </label>
+        <input
+          id="meta-refeicoes"
+          type="number"
+          min={1}
+          max={10}
+          value={metaRefeicoes}
+          onChange={(e) => setMetaRefeicoes(e.target.value)}
+          className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm"
+        />
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label htmlFor="nascimento" className="block text-sm font-medium">Data de nascimento<input id="nascimento" type="date" value={nascimento} onChange={(e) => setNascimento(e.target.value)} className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm" /></label>
-          <label htmlFor="sexo-calculo" className="block text-sm font-medium">Sexo usado no cálculo<select id="sexo-calculo" value={sexoCalculo} onChange={(e) => setSexoCalculo(e.target.value as "" | "female" | "male")} className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm"><option value="">Selecionar</option><option value="female">Feminino</option><option value="male">Masculino</option></select></label>
+          <label htmlFor="nascimento" className="block text-sm font-medium">
+            Data de nascimento
+            <input
+              id="nascimento"
+              type="date"
+              value={nascimento}
+              onChange={(e) => setNascimento(e.target.value)}
+              className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm"
+            />
+          </label>
+          <label htmlFor="sexo-calculo" className="block text-sm font-medium">
+            Sexo usado no cálculo
+            <select
+              id="sexo-calculo"
+              value={sexoCalculo}
+              onChange={(e) => setSexoCalculo(e.target.value as "" | "female" | "male")}
+              className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm"
+            >
+              <option value="">Selecionar</option>
+              <option value="female">Feminino</option>
+              <option value="male">Masculino</option>
+            </select>
+          </label>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">Esses dados são privados e usados somente para estimar sua necessidade energética.</p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Esses dados são privados e usados somente para estimar sua necessidade energética.
+        </p>
         <label htmlFor="meta" className="mt-4 block text-sm font-medium">
           Meta diária de passos
         </label>
@@ -156,8 +186,18 @@ function PerfilPage() {
           type="button"
           onClick={() =>
             updateProfile.mutate(
-              { display_name: nome.trim() || "Apolo", step_goal: Number(meta) || 10000, meal_goal: Number(metaRefeicoes) || 4, birth_date: nascimento || null, metabolic_sex: sexoCalculo || null, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-               { onSuccess: () => toast.success("Perfil atualizado."), onError: () => toast.error("Não foi possível salvar suas metas. Tente novamente.") },
+              {
+                display_name: nome.trim() || "Apolo",
+                step_goal: Number(meta) || 10000,
+                meal_goal: Number(metaRefeicoes) || 4,
+                birth_date: nascimento || null,
+                metabolic_sex: sexoCalculo || null,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              },
+              {
+                onSuccess: () => toast.success("Perfil atualizado."),
+                onError: () => toast.error("Não foi possível salvar suas metas. Tente novamente."),
+              },
             )
           }
           className="mt-4 w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
@@ -184,14 +224,21 @@ function PerfilPage() {
             ))}
           </div>
         )}
-        <p className="mt-5 font-editorial text-sm text-accent">"Menos controle. Mais consciência."</p>
+        <p className="mt-5 font-editorial text-sm text-accent">
+          "Menos controle. Mais consciência."
+        </p>
       </section>
 
       <section className="surface mt-6 divide-y divide-border/60 p-2">
         {[
           { to: "/corpo", label: "Corpo", detail: "Índice UV, passos e sono", icon: Sun },
           { to: "/comunidade", label: "Comunidade", detail: "Ranking e feed", icon: Users },
-          { to: "/protocolo", label: "Protocolo", detail: "Sua jornada de 30 dias", icon: ClipboardList },
+          {
+            to: "/protocolo",
+            label: "Protocolo",
+            detail: "Sua jornada de 30 dias",
+            icon: ClipboardList,
+          },
         ].map(({ to, label, detail, icon: Icon }) => (
           <Link
             key={to}
