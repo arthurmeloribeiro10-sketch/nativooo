@@ -18,7 +18,8 @@ import type {
 // aplicadas ao projeto Supabase remoto nem entraram no `Database` gerado.
 // Por isso o cast `any` local abaixo. Assim que a migration rodar, rode de
 // novo `supabase gen types typescript` e troque este arquivo para usar
-// `supabase` tipado normalmente, removendo o cast.
+// `supabase` tipado normalmente, removendo o cast e os `any` abaixo.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const db = supabase as any;
 
 const provider = new OpenFoodFactsProvider();
@@ -63,7 +64,11 @@ export function useIngredientRules() {
 }
 
 async function fetchCachedProduct(barcode: string): Promise<Product | null> {
-  const { data, error } = await db.from("products").select("*").eq("barcode", barcode).maybeSingle();
+  const { data, error } = await db
+    .from("products")
+    .select("*")
+    .eq("barcode", barcode)
+    .maybeSingle();
   if (error) throw error;
   return data ? mapProductRow(data) : null;
 }
@@ -107,7 +112,13 @@ export function useScanBarcode(userId: string | undefined) {
   const rules = useIngredientRules();
 
   return useMutation({
-    mutationFn: async ({ barcode, source }: { barcode: string; source: ScanSource }): Promise<ScanOutcome> => {
+    mutationFn: async ({
+      barcode,
+      source,
+    }: {
+      barcode: string;
+      source: ScanSource;
+    }): Promise<ScanOutcome> => {
       let product = await fetchCachedProduct(barcode);
 
       if (!product) {
@@ -167,7 +178,10 @@ export function useSaveProduct(userId: string | undefined) {
       if (!userId) throw new Error("Usuário não autenticado");
       const { error } = await db
         .from("saved_products")
-        .upsert({ user_id: userId, product_id: productId }, { onConflict: "user_id,product_id", ignoreDuplicates: true });
+        .upsert(
+          { user_id: userId, product_id: productId },
+          { onConflict: "user_id,product_id", ignoreDuplicates: true },
+        );
       if (error) throw error;
     },
   });

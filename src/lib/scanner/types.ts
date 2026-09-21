@@ -51,12 +51,19 @@ export const SCORE_CATEGORY_LABEL: Record<ScoreCategory, string> = {
 };
 
 /** Classe de cor (tokens já existentes no design system) por categoria. */
-export const SCORE_CATEGORY_TONE: Record<ScoreCategory, { text: string; bg: string; border: string }> = {
+export const SCORE_CATEGORY_TONE: Record<
+  ScoreCategory,
+  { text: string; bg: string; border: string }
+> = {
   muito_alinhado: { text: "text-success", bg: "bg-success/10", border: "border-success/40" },
   alinhado: { text: "text-primary", bg: "bg-secondary", border: "border-primary/30" },
   neutro: { text: "text-muted-foreground", bg: "bg-muted", border: "border-border" },
   atencao: { text: "text-gold", bg: "bg-gold/10", border: "border-gold/40" },
-  pouco_alinhado: { text: "text-terracotta", bg: "bg-terracotta/10", border: "border-terracotta/40" },
+  pouco_alinhado: {
+    text: "text-terracotta",
+    bg: "bg-terracotta/10",
+    border: "border-terracotta/40",
+  },
 };
 
 export type ScoreReason = {
@@ -76,10 +83,7 @@ export type ApoloScoreResult = {
 export type ScanSource = "barcode" | "manual" | "photo_ingredients";
 
 export type ProductLookupError =
-  | { type: "not_found" }
-  | { type: "network_error" }
-  | { type: "unknown"; message: string };
+  { type: "not_found" } | { type: "network_error" } | { type: "unknown"; message: string };
 
 export type ProductLookupResult =
-  | { ok: true; product: Product }
-  | { ok: false; error: ProductLookupError };
+  { ok: true; product: Product } | { ok: false; error: ProductLookupError };

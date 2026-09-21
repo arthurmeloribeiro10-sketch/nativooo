@@ -21,7 +21,12 @@ import { useAuth } from "@/lib/auth-context";
 import { useMealMutations } from "@/lib/nativo-queries";
 import { useBarcodeScanner } from "@/lib/scanner/useBarcodeScanner";
 import { useSaveProduct, useScanBarcode, type ScanOutcome } from "@/lib/scanner/queries";
-import { SCORE_CATEGORY_LABEL, SCORE_CATEGORY_TONE, type ApoloScoreResult, type Product } from "@/lib/scanner/types";
+import {
+  SCORE_CATEGORY_LABEL,
+  SCORE_CATEGORY_TONE,
+  type ApoloScoreResult,
+  type Product,
+} from "@/lib/scanner/types";
 
 export const Route = createFileRoute("/scanner")({
   head: () => ({
@@ -29,7 +34,8 @@ export const Route = createFileRoute("/scanner")({
       { title: "Scanner de produtos — APOLO" },
       {
         name: "description",
-        content: "Aponte a câmera para o código de barras e veja o quanto o produto está alinhado com o APOLO.",
+        content:
+          "Aponte a câmera para o código de barras e veja o quanto o produto está alinhado com o APOLO.",
       },
       { property: "og:title", content: "Scanner de produtos — APOLO" },
       { property: "og:type", content: "website" },
@@ -79,12 +85,26 @@ function ScannerPage() {
     <AppShell>
       <div className="fixed inset-0 z-30 flex flex-col bg-foreground text-background">
         {state.view === "camera" && (
-          <CameraView onDetected={(code) => void runScan(code, "barcode")} onManual={() => setState({ view: "manual" })} onClose={close} />
+          <CameraView
+            onDetected={(code) => void runScan(code, "barcode")}
+            onManual={() => setState({ view: "manual" })}
+            onClose={close}
+          />
         )}
         {state.view === "manual" && (
-          <ManualEntryView onSubmit={(code) => void runScan(code, "manual")} onBack={() => setState({ view: "camera" })} onClose={close} />
+          <ManualEntryView
+            onSubmit={(code) => void runScan(code, "manual")}
+            onBack={() => setState({ view: "camera" })}
+            onClose={close}
+          />
         )}
-        {state.view === "loading" && <CenteredMessage icon={<Loader2 className="size-8 animate-spin" />} title="Analisando produto…" onClose={close} />}
+        {state.view === "loading" && (
+          <CenteredMessage
+            icon={<Loader2 className="size-8 animate-spin" />}
+            title="Analisando produto…"
+            onClose={close}
+          />
+        )}
         {state.view === "not_found" && (
           <CenteredMessage
             icon={<PackageSearch className="size-8" />}
@@ -134,7 +154,8 @@ function CameraView({
   onManual: () => void;
   onClose: () => void;
 }) {
-  const { videoRef, status, start, torchOn, torchSupported, toggleTorch, detectorSupported } = useBarcodeScanner(onDetected);
+  const { videoRef, status, start, torchOn, torchSupported, toggleTorch, detectorSupported } =
+    useBarcodeScanner(onDetected);
 
   const attachVideo = useCallback(
     (node: HTMLVideoElement | null) => {
@@ -180,12 +201,14 @@ function CameraView({
         <div className="space-y-3 p-6 pb-10 text-center">
           {status === "permission_denied" && (
             <p className="text-sm text-white/90">
-              Permissão de câmera negada. Habilite o acesso à câmera nas configurações do navegador, ou digite o código manualmente.
+              Permissão de câmera negada. Habilite o acesso à câmera nas configurações do navegador,
+              ou digite o código manualmente.
             </p>
           )}
           {status === "unsupported" && (
             <p className="text-sm text-white/90">
-              Este navegador ainda não detecta o código de barras automaticamente. Digite o código manualmente.
+              Este navegador ainda não detecta o código de barras automaticamente. Digite o código
+              manualmente.
             </p>
           )}
           {status === "starting" && <p className="text-sm text-white/80">Abrindo câmera…</p>}
@@ -223,13 +246,20 @@ function ManualEntryView({
         <button type="button" onClick={onBack} className="text-sm text-white/80">
           ← Voltar à câmera
         </button>
-        <button type="button" onClick={onClose} aria-label="Fechar scanner" className="flex size-9 items-center justify-center rounded-full bg-white/10">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Fechar scanner"
+          className="flex size-9 items-center justify-center rounded-full bg-white/10"
+        >
           <X className="size-4" />
         </button>
       </div>
       <div className="mt-auto mb-auto">
         <h1 className="font-display text-xl font-semibold">Digitar código de barras</h1>
-        <p className="mt-2 text-sm text-white/70">Geralmente 8 ou 13 números, embaixo do próprio código de barras.</p>
+        <p className="mt-2 text-sm text-white/70">
+          Geralmente 8 ou 13 números, embaixo do próprio código de barras.
+        </p>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -275,7 +305,12 @@ function CenteredMessage({
 }) {
   return (
     <div className="relative flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
-      <button type="button" onClick={onClose} aria-label="Fechar scanner" className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-full bg-white/10">
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Fechar scanner"
+        className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-full bg-white/10"
+      >
         <X className="size-4" />
       </button>
       <div className="text-white/80">{icon}</div>
@@ -338,8 +373,11 @@ function ResultView({
       <div className="relative">
         <div className="flex aspect-[16/10] items-center justify-center bg-secondary">
           {product.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={product.imageUrl} alt={product.name ?? "Produto"} className="size-full object-contain p-6" />
+            <img
+              src={product.imageUrl}
+              alt={product.name ?? "Produto"}
+              className="size-full object-contain p-6"
+            />
           ) : (
             <Camera className="size-10 text-muted-foreground" strokeWidth={1.4} />
           )}
@@ -356,21 +394,27 @@ function ResultView({
 
       <div className="rise mx-auto max-w-xl px-5 pb-32 pt-5">
         <p className="text-sm text-muted-foreground">{product.brand ?? "Marca não informada"}</p>
-        <h1 className="font-display text-2xl font-semibold leading-tight">{product.name ?? "Produto sem nome"}</h1>
+        <h1 className="font-display text-2xl font-semibold leading-tight">
+          {product.name ?? "Produto sem nome"}
+        </h1>
 
-        <div className={`surface mt-5 flex items-center gap-4 border p-5 ${tone.border} ${tone.bg}`}>
-          <div className={`flex size-16 shrink-0 items-center justify-center rounded-full bg-card font-display text-2xl font-bold ${tone.text}`}>
+        <div
+          className={`surface mt-5 flex items-center gap-4 border p-5 ${tone.border} ${tone.bg}`}
+        >
+          <div
+            className={`flex size-16 shrink-0 items-center justify-center rounded-full bg-card font-display text-2xl font-bold ${tone.text}`}
+          >
             {result.score}
           </div>
           <div>
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">APOLO Score</p>
-            <p className={`font-display text-lg font-semibold ${tone.text}`}>{SCORE_CATEGORY_LABEL[result.category]}</p>
+            <p className={`font-display text-lg font-semibold ${tone.text}`}>
+              {SCORE_CATEGORY_LABEL[result.category]}
+            </p>
           </div>
         </div>
 
-        <p className="mt-4 text-sm text-muted-foreground">
-          {resultSummary(result)}
-        </p>
+        <p className="mt-4 text-sm text-muted-foreground">{resultSummary(result)}</p>
 
         {result.reasons.length > 0 && (
           <section className="surface mt-5 p-5">
@@ -407,17 +451,24 @@ function ResultView({
             className="flex w-full items-center justify-between text-sm font-semibold text-foreground"
           >
             Ingredientes ({product.ingredients.length})
-            <ChevronDown className={`size-4 transition-transform ${ingredientsOpen ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`size-4 transition-transform ${ingredientsOpen ? "rotate-180" : ""}`}
+            />
           </button>
           {ingredientsOpen && (
             <ul className="mt-3 flex flex-wrap gap-2">
               {product.ingredients.map((ing, i) => (
-                <li key={i} className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                <li
+                  key={i}
+                  className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground"
+                >
                   {ing.raw}
                 </li>
               ))}
               {product.ingredients.length === 0 && (
-                <p className="text-xs text-muted-foreground">Lista de ingredientes não informada pelo fabricante.</p>
+                <p className="text-xs text-muted-foreground">
+                  Lista de ingredientes não informada pelo fabricante.
+                </p>
               )}
             </ul>
           )}

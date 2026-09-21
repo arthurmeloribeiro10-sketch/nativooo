@@ -88,7 +88,10 @@ export class OpenFoodFactsProvider implements ProductProvider {
       if (e instanceof DOMException && e.name === "AbortError") {
         return { ok: false, error: { type: "network_error" } };
       }
-      return { ok: false, error: { type: "unknown", message: e instanceof Error ? e.message : "erro desconhecido" } };
+      return {
+        ok: false,
+        error: { type: "unknown", message: e instanceof Error ? e.message : "erro desconhecido" },
+      };
     } finally {
       clearTimeout(timeout);
     }

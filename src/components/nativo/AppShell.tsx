@@ -44,7 +44,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     );
   }
 
-  return <AppShellContent signOut={signOut} navigate={navigate}>{children}</AppShellContent>;
+  return (
+    <AppShellContent signOut={signOut} navigate={navigate}>
+      {children}
+    </AppShellContent>
+  );
 }
 
 function AppShellContent({
@@ -62,7 +66,9 @@ function AppShellContent({
     <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 pb-32 pt-5 sm:px-6 sm:pt-7">
       <header className="mb-6 flex items-center justify-between">
         <Link to="/" className="flex items-baseline gap-2">
-          <span className="font-display text-xl font-bold tracking-[0.22em] text-primary">APOLO</span>
+          <span className="font-display text-xl font-bold tracking-[0.22em] text-primary">
+            APOLO
+          </span>
         </Link>
         <button
           type="button"
@@ -106,7 +112,10 @@ function AppShellContent({
                 <span className="relative">
                   <Icon className="size-5" strokeWidth={1.6} />
                   {to === "/perfil" && unreadCount > 0 ? (
-                    <span className="absolute -right-2 -top-2 flex min-w-4 items-center justify-center rounded-full bg-terracotta px-1 text-[9px] leading-4 text-primary-foreground" aria-label={`${unreadCount} notificações não lidas`}>
+                    <span
+                      className="absolute -right-2 -top-2 flex min-w-4 items-center justify-center rounded-full bg-terracotta px-1 text-[9px] leading-4 text-primary-foreground"
+                      aria-label={`${unreadCount} notificações não lidas`}
+                    >
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   ) : null}

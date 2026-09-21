@@ -11,7 +11,9 @@ export function PillarBar({
     <div className="py-3">
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm font-medium text-foreground">{label}</span>
-        <span className="text-xs font-medium text-muted-foreground">{score === null ? "Sem registro" : `${score}%`}</span>
+        <span className="text-xs font-medium text-muted-foreground">
+          {score === null ? "Sem registro" : `${score}%`}
+        </span>
       </div>
       <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-sand">
         <div

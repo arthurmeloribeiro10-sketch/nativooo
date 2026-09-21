@@ -14,7 +14,9 @@ import {
 export const DEFAULT_TZ = "America/Sao_Paulo";
 
 export function browserTimeZone(): string {
-  return typeof Intl === "undefined" ? DEFAULT_TZ : Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TZ;
+  return typeof Intl === "undefined"
+    ? DEFAULT_TZ
+    : Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TZ;
 }
 
 export function today(timeZone = browserTimeZone()): string {
@@ -62,8 +64,19 @@ export type MealRow = {
   kcal_estimated: boolean;
 };
 
-export type SleepRow = { id: string; day: string; hours: number; quality: number; source?: "manual" | "apple_health" };
-export type StepRow = { id: string; day: string; steps: number; source?: "manual" | "apple_health" };
+export type SleepRow = {
+  id: string;
+  day: string;
+  hours: number;
+  quality: number;
+  source?: "manual" | "apple_health";
+};
+export type StepRow = {
+  id: string;
+  day: string;
+  steps: number;
+  source?: "manual" | "apple_health";
+};
 export type ProfileRow = {
   id: string;
   display_name: string;
@@ -139,7 +152,9 @@ export function useProfile(userId: string | undefined) {
     queryFn: async (): Promise<ProfileRow> => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, birth_date, metabolic_sex, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time")
+        .select(
+          "id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, birth_date, metabolic_sex, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time",
+        )
         .eq("id", userId ?? "")
         .maybeSingle();
       if (error) throw error;
@@ -147,7 +162,9 @@ export function useProfile(userId: string | undefined) {
       const { data: created, error: insertError } = await supabase
         .from("profiles")
         .upsert({ id: userId ?? "", timezone: browserTimeZone() }, { onConflict: "id" })
-        .select("id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, birth_date, metabolic_sex, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time")
+        .select(
+          "id, display_name, step_goal, meal_goal, timezone, weight_kg, height_cm, birth_date, metabolic_sex, diet_goal, activity_level, food_preferences, food_restrictions, foods_include, foods_avoid, preferred_start_time, prep_time",
+        )
         .single();
       if (insertError) throw insertError;
       return created as ProfileRow;
@@ -159,7 +176,10 @@ export function useUpdateProfile(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (patch: Partial<Omit<ProfileRow, "id">>) => {
-      const { error } = await supabase.from("profiles").update(patch).eq("id", userId ?? "");
+      const { error } = await supabase
+        .from("profiles")
+        .update(patch)
+        .eq("id", userId ?? "");
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["profile", userId] }),
@@ -185,7 +205,10 @@ export function useMissions(userId: string | undefined) {
 
       const { data: seeded, error: seedError } = await supabase
         .from("missions")
-        .upsert(defaultMissions.map((m) => ({ ...m, user_id: userId ?? "", day })), { onConflict: "user_id,day,title", ignoreDuplicates: true })
+        .upsert(
+          defaultMissions.map((m) => ({ ...m, user_id: userId ?? "", day })),
+          { onConflict: "user_id,day,title", ignoreDuplicates: true },
+        )
         .select("id, day, title, detail, pillar, done, status");
       if (seedError) throw seedError;
       return (seeded ?? []) as MissionRow[];
@@ -204,7 +227,9 @@ export function useToggleMission(userId: string | undefined) {
       const key = ["missions", userId, today()];
       await qc.cancelQueries({ queryKey: key });
       const previous = qc.getQueryData<MissionRow[]>(key);
-      qc.setQueryData<MissionRow[]>(key, (old) => old?.map((m) => (m.id === id ? { ...m, status, done: status === "done" } : m)));
+      qc.setQueryData<MissionRow[]>(key, (old) =>
+        old?.map((m) => (m.id === id ? { ...m, status, done: status === "done" } : m)),
+      );
       return { previous, key };
     },
     onError: (_error, _vars, context) => {
@@ -220,7 +245,12 @@ export function useToggleMission(userId: string | undefined) {
 export function useAddMission(userId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (mission: { title: string; detail?: string; pillar?: string; status?: MissionRow["status"] }) => {
+    mutationFn: async (mission: {
+      title: string;
+      detail?: string;
+      pillar?: string;
+      status?: MissionRow["status"];
+    }) => {
       const { error } = await supabase.from("missions").insert({
         user_id: userId!,
         day: today(),
@@ -281,7 +311,9 @@ export function useMeals(userId: string | undefined) {
       const day = today();
       const { data, error } = await supabase
         .from("meals")
-        .select("id, day, time_label, name, items, kcal, done, note, plan_id, origin, kcal_estimated")
+        .select(
+          "id, day, time_label, name, items, kcal, done, note, plan_id, origin, kcal_estimated",
+        )
         .eq("user_id", userId ?? "")
         .eq("day", day)
         .order("created_at", { ascending: true });
@@ -341,8 +373,18 @@ export function useMealMutations(userId: string | undefined) {
   });
 
   const update = useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: Partial<Pick<MealRow, "name" | "items" | "time_label" | "kcal" | "kcal_estimated">> }) => {
-      const { error } = await supabase.from("meals").update(patch).eq("id", id).eq("user_id", userId ?? "");
+    mutationFn: async ({
+      id,
+      patch,
+    }: {
+      id: string;
+      patch: Partial<Pick<MealRow, "name" | "items" | "time_label" | "kcal" | "kcal_estimated">>;
+    }) => {
+      const { error } = await supabase
+        .from("meals")
+        .update(patch)
+        .eq("id", id)
+        .eq("user_id", userId ?? "");
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -351,9 +393,16 @@ export function useMealMutations(userId: string | undefined) {
   const repeat = useMutation({
     mutationFn: async (meal: MealRow) => {
       const { error } = await supabase.from("meals").insert({
-        user_id: userId ?? "", day: today(), name: meal.name, items: meal.items,
-        time_label: "Livre", kcal: meal.kcal, kcal_estimated: meal.kcal_estimated,
-        note: "Repetida de um registro recente", origin: "manual", done: true,
+        user_id: userId ?? "",
+        day: today(),
+        name: meal.name,
+        items: meal.items,
+        time_label: "Livre",
+        kcal: meal.kcal,
+        kcal_estimated: meal.kcal_estimated,
+        note: "Repetida de um registro recente",
+        origin: "manual",
+        done: true,
       });
       if (error) throw error;
     },
@@ -361,14 +410,27 @@ export function useMealMutations(userId: string | undefined) {
   });
 
   const applyPlan = useMutation({
-    mutationFn: async (plan: { name: string; source: "ai" | "template" | "manual"; summary?: string; preferences?: Record<string, string | number | null>; meals: { time_label: string; name: string; items: string[]; kcal: number }[] }) => {
+    mutationFn: async (plan: {
+      name: string;
+      source: "ai" | "template" | "manual";
+      summary?: string;
+      preferences?: Record<string, string | number | null>;
+      meals: { time_label: string; name: string; items: string[]; kcal: number }[];
+    }) => {
       const { error } = await supabase.rpc("apply_diet_plan", {
-        _name: plan.name, _source: plan.source, _summary: plan.summary ?? "",
-        _preferences: plan.preferences ?? {}, _meals: plan.meals, _day: today(),
+        _name: plan.name,
+        _source: plan.source,
+        _summary: plan.summary ?? "",
+        _preferences: plan.preferences ?? {},
+        _meals: plan.meals,
+        _day: today(),
       });
       if (error) throw error;
     },
-    onSuccess: () => { invalidate(); qc.invalidateQueries({ queryKey: ["diet-plans", userId] }); },
+    onSuccess: () => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: ["diet-plans", userId] });
+    },
   });
 
   return { toggle, add, remove, update, repeat, applyPlan };
@@ -376,11 +438,14 @@ export function useMealMutations(userId: string | undefined) {
 
 export function useDietPlans(userId: string | undefined) {
   return useQuery({
-    queryKey: ["diet-plans", userId], enabled: !!userId,
+    queryKey: ["diet-plans", userId],
+    enabled: !!userId,
     queryFn: async (): Promise<DietPlanRow[]> => {
-      const { data, error } = await supabase.from("diet_plans")
+      const { data, error } = await supabase
+        .from("diet_plans")
         .select("id, name, source, summary, active, created_at")
-        .eq("user_id", userId ?? "").order("created_at", { ascending: false });
+        .eq("user_id", userId ?? "")
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
@@ -389,12 +454,19 @@ export function useDietPlans(userId: string | undefined) {
 
 export function useRecentMeals(userId: string | undefined) {
   return useQuery({
-    queryKey: ["recent-meals", userId], enabled: !!userId,
+    queryKey: ["recent-meals", userId],
+    enabled: !!userId,
     queryFn: async (): Promise<MealRow[]> => {
-      const { data, error } = await supabase.from("meals")
-        .select("id, day, time_label, name, items, kcal, done, note, plan_id, origin, kcal_estimated")
-        .eq("user_id", userId ?? "").eq("done", true).lt("day", today())
-        .order("created_at", { ascending: false }).limit(5);
+      const { data, error } = await supabase
+        .from("meals")
+        .select(
+          "id, day, time_label, name, items, kcal, done, note, plan_id, origin, kcal_estimated",
+        )
+        .eq("user_id", userId ?? "")
+        .eq("done", true)
+        .lt("day", today())
+        .order("created_at", { ascending: false })
+        .limit(5);
       if (error) throw error;
       return ((data ?? []) as MealRow[]).map(withNaturalMealName);
     },
@@ -410,14 +482,37 @@ export function useSleepWeek(userId: string | undefined) {
     queryFn: async (): Promise<SleepRow[]> => {
       const days = lastDays(7);
       const [manual, imported] = await Promise.all([
-        supabase.from("sleep_logs").select("id, day, hours, quality").eq("user_id", userId ?? "").gte("day", days[0]!).lte("day", days[days.length - 1]!).order("day", { ascending: true }),
-        supabase.from("health_samples").select("id,value,measured_at").eq("user_id", userId ?? "").eq("metric_type", "sleep_minutes").gte("measured_at", `${days[0]}T00:00:00Z`).order("measured_at", { ascending: true }),
+        supabase
+          .from("sleep_logs")
+          .select("id, day, hours, quality")
+          .eq("user_id", userId ?? "")
+          .gte("day", days[0]!)
+          .lte("day", days[days.length - 1]!)
+          .order("day", { ascending: true }),
+        supabase
+          .from("health_samples")
+          .select("id,value,measured_at")
+          .eq("user_id", userId ?? "")
+          .eq("metric_type", "sleep_minutes")
+          .gte("measured_at", `${days[0]}T00:00:00Z`)
+          .order("measured_at", { ascending: true }),
       ]);
       if (manual.error) throw manual.error;
       if (imported.error) throw imported.error;
       const byDay = new Map<string, SleepRow>();
-      for (const sample of imported.data ?? []) { const day = sample.measured_at.slice(0, 10); const current = byDay.get(day); byDay.set(day, { id: current?.id ?? sample.id, day, hours: (current?.hours ?? 0) + Number(sample.value) / 60, quality: 75, source: "apple_health" }); }
-      for (const row of manual.data ?? []) byDay.set(row.day, { ...row, hours: Number(row.hours), source: "manual" });
+      for (const sample of imported.data ?? []) {
+        const day = sample.measured_at.slice(0, 10);
+        const current = byDay.get(day);
+        byDay.set(day, {
+          id: current?.id ?? sample.id,
+          day,
+          hours: (current?.hours ?? 0) + Number(sample.value) / 60,
+          quality: 75,
+          source: "apple_health",
+        });
+      }
+      for (const row of manual.data ?? [])
+        byDay.set(row.day, { ...row, hours: Number(row.hours), source: "manual" });
       return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
     },
   });
@@ -445,13 +540,34 @@ export function useStepsWeek(userId: string | undefined) {
     queryFn: async (): Promise<StepRow[]> => {
       const days = lastDays(7);
       const [manual, imported] = await Promise.all([
-        supabase.from("step_logs").select("id, day, steps").eq("user_id", userId ?? "").gte("day", days[0]!).lte("day", days[days.length - 1]!).order("day", { ascending: true }),
-        supabase.from("health_samples").select("id,value,measured_at").eq("user_id", userId ?? "").eq("metric_type", "steps").gte("measured_at", `${days[0]}T00:00:00Z`).order("measured_at", { ascending: true }),
+        supabase
+          .from("step_logs")
+          .select("id, day, steps")
+          .eq("user_id", userId ?? "")
+          .gte("day", days[0]!)
+          .lte("day", days[days.length - 1]!)
+          .order("day", { ascending: true }),
+        supabase
+          .from("health_samples")
+          .select("id,value,measured_at")
+          .eq("user_id", userId ?? "")
+          .eq("metric_type", "steps")
+          .gte("measured_at", `${days[0]}T00:00:00Z`)
+          .order("measured_at", { ascending: true }),
       ]);
       if (manual.error) throw manual.error;
       if (imported.error) throw imported.error;
       const byDay = new Map<string, StepRow>();
-      for (const sample of imported.data ?? []) { const day = sample.measured_at.slice(0, 10); const current = byDay.get(day); byDay.set(day, { id: current?.id ?? sample.id, day, steps: (current?.steps ?? 0) + Math.round(Number(sample.value)), source: "apple_health" }); }
+      for (const sample of imported.data ?? []) {
+        const day = sample.measured_at.slice(0, 10);
+        const current = byDay.get(day);
+        byDay.set(day, {
+          id: current?.id ?? sample.id,
+          day,
+          steps: (current?.steps ?? 0) + Math.round(Number(sample.value)),
+          source: "apple_health",
+        });
+      }
       for (const row of manual.data ?? []) byDay.set(row.day, { ...row, source: "manual" });
       return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
     },
@@ -471,20 +587,52 @@ export function useSaveSteps(userId: string | undefined) {
   });
 }
 
-export type HealthConnectionRow = { id: string; status: string; permissions: string[]; device_name: string | null; last_synced_at: string | null; last_error: string | null };
-export type HealthSampleRow = { id: string; metric_type: string; value: number; unit: string; measured_at: string; source_name: string; source_device: string | null };
+export type HealthConnectionRow = {
+  id: string;
+  status: string;
+  permissions: string[];
+  device_name: string | null;
+  last_synced_at: string | null;
+  last_error: string | null;
+};
+export type HealthSampleRow = {
+  id: string;
+  metric_type: string;
+  value: number;
+  unit: string;
+  measured_at: string;
+  source_name: string;
+  source_device: string | null;
+};
 
 export function useHealthData(userId: string | undefined) {
   return useQuery({
-    queryKey: ["health-data", userId], enabled: !!userId,
-    queryFn: async (): Promise<{ connection: HealthConnectionRow | null; samples: HealthSampleRow[] }> => {
+    queryKey: ["health-data", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<{
+      connection: HealthConnectionRow | null;
+      samples: HealthSampleRow[];
+    }> => {
       const [connectionResult, samplesResult] = await Promise.all([
-        supabase.from("health_connections").select("id,status,permissions,device_name,last_synced_at,last_error").eq("user_id", userId ?? "").eq("provider", "apple_health").maybeSingle(),
-        supabase.from("health_samples").select("id,metric_type,value,unit,measured_at,source_name,source_device").eq("user_id", userId ?? "").gte("measured_at", new Date(Date.now() - 7 * 86400000).toISOString()).order("measured_at", { ascending: false }),
+        supabase
+          .from("health_connections")
+          .select("id,status,permissions,device_name,last_synced_at,last_error")
+          .eq("user_id", userId ?? "")
+          .eq("provider", "apple_health")
+          .maybeSingle(),
+        supabase
+          .from("health_samples")
+          .select("id,metric_type,value,unit,measured_at,source_name,source_device")
+          .eq("user_id", userId ?? "")
+          .gte("measured_at", new Date(Date.now() - 7 * 86400000).toISOString())
+          .order("measured_at", { ascending: false }),
       ]);
       if (connectionResult.error) throw connectionResult.error;
       if (samplesResult.error) throw samplesResult.error;
-      return { connection: connectionResult.data, samples: (samplesResult.data ?? []).map((s) => ({ ...s, value: Number(s.value) })) };
+      return {
+        connection: connectionResult.data,
+        samples: (samplesResult.data ?? []).map((s) => ({ ...s, value: Number(s.value) })),
+      };
     },
   });
 }
@@ -584,7 +732,6 @@ export function usePostMutations(userId: string | undefined) {
     },
     onSuccess: invalidate,
   });
-
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
@@ -704,7 +851,13 @@ export function useCommunityNotifications(userId: string | undefined) {
 
 /* ---------- score ---------- */
 
-export type PillarScore = { key: string; label: string; score: number | null; note: string; href: string };
+export type PillarScore = {
+  key: string;
+  label: string;
+  score: number | null;
+  note: string;
+  href: string;
+};
 
 export function computePillars(input: {
   meals: MealRow[];
@@ -724,12 +877,16 @@ export function computePillars(input: {
   const movimento = stepsToday ? pct(stepsToday.steps / stepGoal) : null;
 
   const sleepLatest = [...sleep].sort((a, b) => b.day.localeCompare(a.day))[0];
-  const sono = sleepLatest ? pct((Math.min(sleepLatest.hours, 8) / 8) * 0.6 + (sleepLatest.quality / 100) * 0.4) : null;
+  const sono = sleepLatest
+    ? pct((Math.min(sleepLatest.hours, 8) / 8) * 0.6 + (sleepLatest.quality / 100) * 0.4)
+    : null;
 
   const byPillar = (p: string) => {
     const list = missions.filter((m) => m.pillar === p);
     const recorded = list.filter((m) => m.status !== "pending");
-    return recorded.length ? pct(recorded.filter((m) => m.status === "done").length / recorded.length) : null;
+    return recorded.length
+      ? pct(recorded.filter((m) => m.status === "done").length / recorded.length)
+      : null;
   };
 
   return [
@@ -737,24 +894,36 @@ export function computePillars(input: {
       key: "alimentacao",
       label: "Alimentação",
       score: alimentacao,
-      note: mealsDone ? `${mealsDone} de ${mealGoal} refeições registradas hoje.` : "Nenhuma refeição registrada como realizada hoje.",
+      note: mealsDone
+        ? `${mealsDone} de ${mealGoal} refeições registradas hoje.`
+        : "Nenhuma refeição registrada como realizada hoje.",
       href: "/dieta",
     },
     {
       key: "movimento",
       label: "Movimento",
       score: movimento,
-      note: stepsToday ? `${stepsToday.steps.toLocaleString("pt-BR")} passos informados de ${stepGoal.toLocaleString("pt-BR")}.` : "Passos ainda não informados hoje.",
+      note: stepsToday
+        ? `${stepsToday.steps.toLocaleString("pt-BR")} passos informados de ${stepGoal.toLocaleString("pt-BR")}.`
+        : "Passos ainda não informados hoje.",
       href: "/corpo",
     },
     {
       key: "sono",
       label: "Sono e recuperação",
       score: sono,
-      note: sleepLatest ? `${sleepLatest.hours} h no último registro (${weekdayLabel(sleepLatest.day)}).` : "Sono ainda não registrado.",
+      note: sleepLatest
+        ? `${sleepLatest.hours} h no último registro (${weekdayLabel(sleepLatest.day)}).`
+        : "Sono ainda não registrado.",
       href: "/corpo",
     },
-    { key: "sol", label: "Momentos ao ar livre", score: byPillar("sol"), note: "Atividades ao ar livre registradas hoje.", href: "/registro" },
+    {
+      key: "sol",
+      label: "Momentos ao ar livre",
+      score: byPillar("sol"),
+      note: "Atividades ao ar livre registradas hoje.",
+      href: "/registro",
+    },
     {
       key: "presenca",
       label: "Presença e telas",
@@ -763,10 +932,50 @@ export function computePillars(input: {
       href: "/registro",
     },
     {
-      key: "habitos", label: "Outros hábitos", score: byPillar("habitos"),
-      note: "Outros hábitos registrados hoje.", href: "/registro",
+      key: "habitos",
+      label: "Outros hábitos",
+      score: byPillar("habitos"),
+      note: "Outros hábitos registrados hoje.",
+      href: "/registro",
     },
   ];
+}
+
+/**
+ * Série diária (últimos N dias) do mesmo cálculo usado em computePillars,
+ * pilar a pilar — para as mini-sparklines dos PillarCard na Home. Reaproveita
+ * as fórmulas reais; nunca inventa dado. "alimentacao" retorna só `null`
+ * porque hoje só existe histórico de refeições do dia atual (useMeals não
+ * busca a semana) — ver pendências no resumo da sessão.
+ */
+export function computePillarTrend(input: {
+  key: string;
+  missions: MissionRow[];
+  steps: StepRow[];
+  sleep: SleepRow[];
+  stepGoal: number;
+  days: string[];
+}): Array<number | null> {
+  const { key, missions, steps, sleep, stepGoal, days } = input;
+  const pct = (v: number) => Math.max(0, Math.min(100, Math.round(v * 100)));
+
+  return days.map((day) => {
+    if (key === "movimento") {
+      const row = steps.find((s) => s.day === day);
+      return row ? pct(row.steps / stepGoal) : null;
+    }
+    if (key === "sono") {
+      const row = sleep.find((s) => s.day === day);
+      return row ? pct((Math.min(row.hours, 8) / 8) * 0.6 + (row.quality / 100) * 0.4) : null;
+    }
+    if (key === "alimentacao") return null;
+
+    const dayMissions = missions.filter((m) => m.day === day && m.pillar === key);
+    const recorded = dayMissions.filter((m) => m.status !== "pending");
+    return recorded.length
+      ? pct(recorded.filter((m) => m.status === "done").length / recorded.length)
+      : null;
+  });
 }
 
 export function averageScore(pillars: PillarScore[]): number | null {
@@ -779,7 +988,9 @@ export function computeStreak(missions: MissionRow[]): number {
   const doneDays = new Set(missions.filter((m) => m.done).map((m) => m.day));
   let streak = 0;
   for (let i = 0; i < 60; i++) {
-    const d = new Date(Date.now() - i * 86400000).toLocaleDateString("en-CA", { timeZone: browserTimeZone() });
+    const d = new Date(Date.now() - i * 86400000).toLocaleDateString("en-CA", {
+      timeZone: browserTimeZone(),
+    });
     if (doneDays.has(d)) streak++;
     else if (i > 0) break;
   }

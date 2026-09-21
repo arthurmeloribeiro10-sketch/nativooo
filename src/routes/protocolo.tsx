@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
 import { useAuth } from "@/lib/auth-context";
 import { useProtocol, useToggleProtocolDay } from "@/lib/nativo-queries";
+import { useCompleteChallengeDay } from "@/lib/gamification/queries";
 
 export const Route = createFileRoute("/protocolo")({
   head: () => ({
@@ -27,13 +28,36 @@ export const Route = createFileRoute("/protocolo")({
   component: ProtocoloPage,
 });
 
-const focos = ["Comida real", "Sol da manhã", "Movimento diário", "Sono regular", "Presença", "Natureza"];
+const focos = [
+  "Comida real",
+  "Sol da manhã",
+  "Movimento diário",
+  "Sono regular",
+  "Presença",
+  "Natureza",
+];
 
 const acoesPorFoco: Record<string, string[]> = {
-  "Comida real": ["Uma refeição só com comida de verdade", "Zero ultraprocessado no lanche", "Beba água antes das refeições"],
-  "Sol da manhã": ["Passe um tempo ao ar livre pela manhã", "Consulte o UV e use a proteção adequada", "Tome o café da manhã perto da janela"],
-  "Movimento diário": ["Caminhada de 20 minutos", "Subir escadas em vez de elevador", "Alongar 5 minutos"],
-  "Sono regular": ["Dormir e acordar no mesmo horário", "Luz baixa uma hora antes de dormir", "Sem tela na cama"],
+  "Comida real": [
+    "Uma refeição só com comida de verdade",
+    "Zero ultraprocessado no lanche",
+    "Beba água antes das refeições",
+  ],
+  "Sol da manhã": [
+    "Passe um tempo ao ar livre pela manhã",
+    "Consulte o UV e use a proteção adequada",
+    "Tome o café da manhã perto da janela",
+  ],
+  "Movimento diário": [
+    "Caminhada de 20 minutos",
+    "Subir escadas em vez de elevador",
+    "Alongar 5 minutos",
+  ],
+  "Sono regular": [
+    "Dormir e acordar no mesmo horário",
+    "Luz baixa uma hora antes de dormir",
+    "Sem tela na cama",
+  ],
   Presença: ["30 minutos sem celular", "Uma refeição sem tela", "Cinco minutos de respiração"],
   Natureza: ["Pés descalços na grama", "Uma volta em área verde", "Ar livre por 30 minutos"],
 };
@@ -43,10 +67,13 @@ function ProtocoloPage() {
   const userId = user?.id;
   const protocol = useProtocol(userId);
   const toggleDay = useToggleProtocolDay(userId);
+  const completeDay = useCompleteChallengeDay(userId);
 
   const completed = protocol.data ?? [];
   const concluidos = completed.length;
-  const primeiroPendente = Array.from({ length: 30 }, (_, i) => i + 1).find((day) => !completed.includes(day));
+  const primeiroPendente = Array.from({ length: 30 }, (_, i) => i + 1).find(
+    (day) => !completed.includes(day),
+  );
   const hoje = primeiroPendente ?? 30;
   const focoHoje = focos[(hoje - 1) % focos.length] ?? focos[0]!;
 
@@ -89,12 +116,20 @@ function ProtocoloPage() {
         </ul>
         <button
           type="button"
-          disabled={concluidos >= 30}
+          disabled={concluidos >= 30 || completeDay.isPending}
           onClick={() =>
-            toggleDay.mutate(
-              { day: hoje, done: true },
-              { onSuccess: () => toast.success(`Dia ${hoje} concluído.`) },
-            )
+            completeDay.mutate(hoje, {
+              onSuccess: (result) => {
+                if (result.coinsAwarded > 0) {
+                  toast.success(`Dia ${hoje} concluído.`, {
+                    description: `+${result.coinsAwarded} moedas`,
+                  });
+                } else {
+                  toast.success(`Dia ${hoje} concluído.`);
+                }
+              },
+              onError: () => toast.error("Não foi possível concluir o dia. Tente novamente."),
+            })
           }
           className="mt-5 w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
         >
@@ -105,7 +140,8 @@ function ProtocoloPage() {
       <section className="surface mt-6 p-5">
         <h2 className="text-lg">Jornada completa</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Toque em um dia concluído para desmarcá-lo. O primeiro dia pendente fica disponível para retomar.
+          Toque em um dia concluído para desmarcá-lo. O primeiro dia pendente fica disponível para
+          retomar.
         </p>
         <div className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-6">
           {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => {
@@ -118,7 +154,7 @@ function ProtocoloPage() {
                 title={focos[(day - 1) % focos.length]}
                 onClick={() => {
                   if (done) toggleDay.mutate({ day, done: false });
-                  else if (isToday) toggleDay.mutate({ day, done: true });
+                  else if (isToday) completeDay.mutate(day);
                 }}
                 className={`flex aspect-square flex-col items-center justify-center rounded-2xl border text-xs font-medium transition-colors ${
                   done

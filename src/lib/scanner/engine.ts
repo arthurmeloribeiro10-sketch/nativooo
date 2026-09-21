@@ -1,4 +1,10 @@
-import type { ApoloScoreResult, IngredientRule, Product, ScoreCategory, ScoreReason } from "./types";
+import type {
+  ApoloScoreResult,
+  IngredientRule,
+  Product,
+  ScoreCategory,
+  ScoreReason,
+} from "./types";
 
 const BASELINE_SCORE = 60;
 const ENGINE_VERSION = "v1";
@@ -17,7 +23,9 @@ function categoryForScore(score: number): ScoreCategory {
 
 function matchesIngredientRule(rule: IngredientRule, normalizedIngredients: string[]): boolean {
   if (rule.matchType === "category") return false; // categorias são avaliadas à parte
-  return normalizedIngredients.some((ingredient) => ingredient.includes(rule.matchValue.toLowerCase()));
+  return normalizedIngredients.some((ingredient) =>
+    ingredient.includes(rule.matchValue.toLowerCase()),
+  );
 }
 
 /**
@@ -59,7 +67,8 @@ export function computeApoloScore(product: Product, rules: IngredientRule[]): Ap
   }
 
   const matched = rules.filter(
-    (rule) => matchesIngredientRule(rule, normalizedIngredients) || categoryRuleApplies(rule, product),
+    (rule) =>
+      matchesIngredientRule(rule, normalizedIngredients) || categoryRuleApplies(rule, product),
   );
 
   // Uma regra só conta uma vez mesmo se casar com vários ingredientes.
