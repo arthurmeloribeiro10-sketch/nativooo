@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, Salad } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/nativo/AppShell";
-import { ScoreRing } from "@/components/nativo/ScoreRing";
 import { StreakBadge } from "@/components/nativo/StreakBadge";
 import { CoinBalance } from "@/components/nativo/CoinBalance";
 import { Challenge30Card } from "@/components/nativo/Challenge30Card";
@@ -13,16 +12,24 @@ import { AchievementBurst } from "@/components/nativo/AchievementBurst";
 import { BodyRoutinePreview } from "@/components/nativo/BodyRoutinePreview";
 import { WeeklyBarChart } from "@/components/nativo/WeeklyBarChart";
 import { PillarCard } from "@/components/nativo/PillarCard";
+import { TreeHero } from "@/components/nativo/TreeHero";
+import { DayOpenRitual } from "@/components/nativo/DayOpenRitual";
+import { DayCloseRitual } from "@/components/nativo/DayCloseRitual";
+import type { LeafDatum } from "@/components/nativo/LivingTree";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth-context";
-import { firstName } from "@/lib/format";
-import { useSunIndex, uvLevel } from "@/lib/sun";
+import { firstName, plural } from "@/lib/format";
+import { useSunIndex } from "@/lib/sun";
 import { useWalletBalance, useCompleteChallengeDay } from "@/lib/gamification/queries";
-
-/** Delay de entrada em cascata para as seções da Home — `.rise` lê `--stagger`. */
-function stagger(index: number): React.CSSProperties {
-  return { "--stagger": `${index * 70}ms` } as React.CSSProperties;
-}
+import {
+  cardByKey,
+  drawCard,
+  useCardCollection,
+  useRitual,
+  type Intention,
+  type Mood,
+} from "@/lib/rituals";
+import { haptic, playChord, playFlip, playNote } from "@/lib/sound";
 import {
   averageScore,
   computePillars,
@@ -30,8 +37,10 @@ import {
   computeStreak,
   lastDays,
   today,
+  useAddMission,
   useMeals,
   useMissions,
+  useMissionsHistory,
   useMissionsWeek,
   useProfile,
   useProtocol,
@@ -39,7 +48,13 @@ import {
   useStepsWeek,
   useToggleMission,
   weekdayLabel,
+  type MissionRow,
 } from "@/lib/nativo-queries";
+
+/** Delay de entrada em cascata para as seções da Home — `.rise` lê `--stagger`. */
+function stagger(index: number): React.CSSProperties {
+  return { "--stagger": `${index * 70}ms` } as React.CSSProperties;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -67,22 +82,52 @@ function greeting(hour: number) {
   return "Boa noite";
 }
 
+/** Hora e minuto locais no fuso do perfil (ou do navegador). */
+function useLocalClock(timeZone: string | undefined) {
+  const read = () => {
+    const parts = new Intl.DateTimeFormat("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: timeZone || undefined,
+    }).formatToParts(new Date());
+    const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0) % 24;
+    const minute = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
+    return { hour, minute };
+  };
+  const [clock, setClock] = useState(read);
+  useEffect(() => {
+    setClock(read());
+    const timer = window.setInterval(() => setClock(read()), 60_000);
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeZone]);
+  return clock;
+}
+
 function Home() {
   const { user } = useAuth();
   const userId = user?.id;
+  const todayStr = today();
 
   const profile = useProfile(userId);
   const missions = useMissions(userId);
   const missionsWeek = useMissionsWeek(userId);
+  const history = useMissionsHistory(userId);
   const meals = useMeals(userId);
   const steps = useStepsWeek(userId);
   const sleep = useSleepWeek(userId);
   const protocol = useProtocol(userId);
   const toggle = useToggleMission(userId);
+  const addMission = useAddMission(userId);
   const wallet = useWalletBalance(userId);
   const completeDay = useCompleteChallengeDay(userId);
   const { place, sun } = useSunIndex();
+  const { ritual, update: updateRitual, ready: ritualReady } = useRitual(userId, todayStr);
+  const collection = useCardCollection(userId);
+  const { hour, minute } = useLocalClock(profile.data?.timezone);
 
+  const name = firstName(profile.data?.display_name);
   const pillars = computePillars({
     meals: meals.data ?? [],
     missions: missions.data ?? [],
@@ -98,46 +143,135 @@ function Home() {
   const streak = computeStreak(missionsWeek.data ?? []);
   const completedDays = protocol.data ?? [];
   const todayChallengeDay = Math.min(30, completedDays.length + 1);
+  const challengeDoneToday = completedDays.includes(todayChallengeDay);
+  const allDone = list.length > 0 && pending.length === 0;
+  const mealsDone = (meals.data ?? []).filter((m) => m.done).length;
 
-  const dayJustCompleted = list.length > 0 && pending.length === 0;
+  // Folhas: histórico (dias anteriores) + missões concluídas hoje, em ordem.
+  const leaves = useMemo<LeafDatum[]>(
+    () => [
+      ...(history.data ?? []).map((m) => ({ key: m.id, pillar: m.pillar, day: m.day })),
+      ...completed.map((m) => ({ key: m.id, pillar: m.pillar, day: todayStr })),
+    ],
+    [history.data, completed, todayStr],
+  );
+  const pillarsTouched = useMemo(
+    () => Array.from(new Set(completed.map((m) => m.pillar))),
+    [completed],
+  );
 
-  // Dispara a celebração só na TRANSIÇÃO de "tem pendente" pra "tudo feito"
-  // durante a sessão — nunca ao simplesmente carregar um dia já concluído.
-  const [showDayBurst, setShowDayBurst] = useState(false);
+  // Pilar mais fraco (com dado) — personaliza a carta de "foco".
+  const weakestPillar =
+    pillars
+      .filter((p): p is typeof p & { score: number } => p.score !== null)
+      .sort((a, b) => a.score - b.score)[0]?.key ?? null;
+  const card = ritual.cardKey
+    ? cardByKey(ritual.cardKey)
+    : userId
+      ? drawCard(userId, todayStr, weakestPillar)
+      : null;
+
+  const [openRitualOpen, setOpenRitualOpen] = useState(false);
+  const [closeRitualOpen, setCloseRitualOpen] = useState(false);
+  const [burst, setBurst] = useState<{ title: string; subtitle: string } | null>(null);
+
+  // Celebração só na TRANSIÇÃO de "tem pendente" pra "tudo feito" nesta sessão.
   const prevPendingCount = useRef(pending.length);
   useEffect(() => {
     if (prevPendingCount.current > 0 && pending.length === 0 && list.length > 0) {
-      setShowDayBurst(true);
+      setBurst({
+        title: "Dia completo ☀️",
+        subtitle: `Você fechou as ${list.length} ações de hoje. Agora é só colher: feche o dia quando quiser.`,
+      });
     }
     prevPendingCount.current = pending.length;
   }, [pending.length, list.length]);
 
-  const hour = Number(
-    new Intl.DateTimeFormat("pt-BR", {
-      hour: "2-digit",
-      hour12: false,
-      timeZone: profile.data?.timezone || undefined,
-    }).format(new Date()),
-  );
-  const next = pending[0]
-    ? { text: pending[0].title, detail: pending[0].detail, href: "/registro" as const }
-    : (meals.data ?? []).length === 0
-      ? {
-          text: "Faça seu primeiro registro do dia",
-          detail: "Uma refeição, um hábito — o que fizer sentido agora.",
-          href: "/registro" as const,
-        }
-      : hour < 18
-        ? {
-            text: "Confira seus passos e o UV atual",
-            detail: "Aproveite a luz do dia.",
-            href: "/corpo" as const,
-          }
-        : {
-            text: "Registre como foi seu sono",
-            detail: "Fecha bem o dia de hoje.",
-            href: "/corpo" as const,
-          };
+  const handleToggle = (m: MissionRow) => {
+    const marking = m.status !== "done";
+    if (marking) {
+      playNote(completed.length);
+      haptic(12);
+    }
+    toggle.mutate(
+      { id: m.id, status: marking ? "done" : "pending" },
+      { onError: () => toast.error("Não foi possível salvar. Tente novamente.") },
+    );
+  };
+
+  const handleChooseIntention = (intention: Intention) => {
+    if (!card) return;
+    haptic(10);
+    updateRitual({ intention, cardKey: card.key });
+  };
+
+  const handleReveal = () => {
+    playFlip();
+    haptic([8, 40, 14]);
+    updateRitual({ cardRevealedAt: new Date().toISOString() });
+  };
+
+  const handleAcceptCard = () => {
+    if (!card) return;
+    const finish = () => {
+      collection.add(card.key);
+      updateRitual({ cardAccepted: true });
+      setOpenRitualOpen(false);
+      playNote(2);
+      toast.success(
+        card.kind === "golden"
+          ? "Folha dourada ativada. A próxima missão concluída brilha na sua árvore."
+          : card.mission
+            ? "Missão bônus adicionada ao seu dia."
+            : "Carta guardada na sua coleção.",
+      );
+    };
+    if (card.mission && !list.some((m) => m.title === card.mission?.title)) {
+      addMission.mutate(card.mission, {
+        onSuccess: finish,
+        onError: (error) => {
+          // Título já existe hoje (índice único) — trata como aceito.
+          if ((error as { code?: string }).code === "23505") finish();
+          else toast.error("Não foi possível adicionar a missão. Tente de novo.");
+        },
+      });
+    } else {
+      finish();
+    }
+  };
+
+  const handleChooseMood = (mood: Mood) => {
+    haptic(10);
+    updateRitual({ mood });
+  };
+
+  const handleCloseDay = () => {
+    const finish = (coins: number) => {
+      updateRitual({ closedAt: new Date().toISOString(), leavesAtClose: completed.length });
+      setCloseRitualOpen(false);
+      playChord();
+      haptic([20, 60, 20, 60, 40]);
+      setBurst({
+        title: `Boa noite, ${name}`,
+        subtitle:
+          completed.length > 0
+            ? `Sua árvore cresceu ${plural(completed.length, "folha")} hoje${coins > 0 ? ` e você ganhou ${coins} moedas` : ""}. Amanhã tem carta nova.`
+            : "Amanhã tem carta nova e uma folha esperando por você.",
+      });
+    };
+    if (allDone && !challengeDoneToday) {
+      completeDay.mutate(todayChallengeDay, {
+        onSuccess: (result) => finish(result.coinsAwarded),
+        onError: () => toast.error("Não foi possível marcar o dia do desafio. Tente novamente."),
+      });
+    } else {
+      finish(0);
+    }
+  };
+
+  const scrollToMissions = () => {
+    document.getElementById("missoes")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const days7 = lastDays(7);
   const week = days7.map((day) => {
@@ -150,45 +284,60 @@ function Home() {
     };
   });
 
-  const stepsToday = (steps.data ?? []).find((s) => s.day === today());
+  const stepsToday = (steps.data ?? []).find((s) => s.day === todayStr);
   const sleepLatest = [...(sleep.data ?? [])].sort((a, b) => b.day.localeCompare(a.day))[0];
-  const guidance = sun.data ? uvLevel(sun.data.currentUv ?? sun.data.uvPeak) : null;
-
-  const handleCompleteDay = () => {
-    completeDay.mutate(todayChallengeDay, {
-      onSuccess: (result) => {
-        if (result.dayCompleted && result.coinsAwarded > 0) {
-          toast.success(`Dia concluído ☀️ Você manteve sua sequência.`, {
-            description: `+${result.coinsAwarded} moedas`,
-          });
-        } else if (result.dayCompleted) {
-          toast.success("Dia concluído ☀️");
-        }
-      },
-      onError: () => toast.error("Não foi possível concluir o dia. Tente novamente."),
-    });
-  };
+  const uvNow = sun.data?.currentUv ?? (place ? (sun.data?.uvPeak ?? null) : null);
 
   return (
     <AppShell>
       <AchievementBurst
-        open={showDayBurst}
-        title="Dia concluído ☀️"
-        subtitle={`Você fechou as ${list.length} ações de hoje. Sequência de ${streak + 1} ${streak + 1 === 1 ? "dia" : "dias"}.`}
-        onDone={() => setShowDayBurst(false)}
+        open={burst !== null}
+        title={burst?.title ?? ""}
+        subtitle={burst?.subtitle ?? ""}
+        onDone={() => setBurst(null)}
+      />
+
+      <DayOpenRitual
+        open={openRitualOpen}
+        onOpenChange={setOpenRitualOpen}
+        name={name}
+        intention={ritual.intention}
+        card={card}
+        revealed={Boolean(ritual.cardRevealedAt)}
+        accepting={addMission.isPending}
+        onChooseIntention={handleChooseIntention}
+        onReveal={handleReveal}
+        onAccept={handleAcceptCard}
+      />
+
+      <DayCloseRitual
+        open={closeRitualOpen}
+        onOpenChange={setCloseRitualOpen}
+        name={name}
+        leavesToday={completed.length}
+        pillarsTouched={pillarsTouched}
+        allDone={allDone}
+        pending={pending.length}
+        streak={streak}
+        challengeDay={todayChallengeDay}
+        challengeDone={challengeDoneToday}
+        mood={ritual.mood}
+        closing={completeDay.isPending}
+        onChooseMood={handleChooseMood}
+        onCloseDay={handleCloseDay}
       />
 
       <header className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">
-            {greeting(hour)}, {firstName(profile.data?.display_name)} 👋
+            {greeting(hour)}, {name} 👋
           </p>
           <h1 className="mt-1 text-2xl">
-            {dayJustCompleted
-              ? "Dia concluído ☀️"
-              : completed.length > 0
-                ? `Você já concluiu ${completed.length} de ${list.length} hoje.`
-                : "Continue construindo sua melhor versão."}
+            {ritual.closedAt
+              ? "Descanse. Você apareceu hoje."
+              : ritual.intention
+                ? `Hoje é dia de ${ritual.intention.toLowerCase()}.`
+                : "Como você quer viver hoje?"}
           </h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -196,95 +345,62 @@ function Home() {
           <CoinBalance balance={wallet.data ?? 0} />
           <Avatar className="size-9">
             <AvatarFallback className="bg-secondary text-sm font-semibold text-primary">
-              {firstName(profile.data?.display_name).slice(0, 1).toUpperCase()}
+              {name.slice(0, 1).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </div>
       </header>
 
-      <section
-        className={`rise flex items-center gap-4 p-5 ${dayJustCompleted ? "surface-solar" : "surface-deep"}`}
-        style={stagger(0)}
-      >
-        <ScoreRing score={score} size={92} />
-        <div>
-          <p className="text-xs uppercase tracking-[0.12em] opacity-75">
-            {dayJustCompleted ? "Dia completo" : "Seu progresso hoje"}
-          </p>
-          <p className="mt-1 font-editorial text-lg italic">
-            {completed.length} de {list.length || "—"} hábitos concluídos
-          </p>
-        </div>
-      </section>
-
-      <BodyRoutinePreview
-        uv={sun.data?.currentUv ?? (place ? (sun.data?.uvPeak ?? null) : null)}
-        uvPeakTime={guidance ? (sun.data?.currentTime?.slice(11, 16) ?? null) : null}
-        steps={stepsToday?.steps ?? null}
-        stepGoal={profile.data?.step_goal ?? 10000}
-        sleepHours={sleepLatest?.hours ?? null}
-        sleepQualityLabel={
-          sleepLatest
-            ? sleepLatest.quality >= 70
-              ? "Boa recuperação"
-              : "Recuperação parcial"
-            : null
-        }
-      />
-
-      <section className="surface rise mt-5 overflow-hidden p-5" style={stagger(1)}>
-        {dayJustCompleted ? (
-          <>
-            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-              Resumo do dia
-            </p>
-            <h2 className="mt-2 font-editorial text-xl italic text-foreground">
-              Todas as ações de hoje, concluídas.
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Constância importa mais que perfeição — volte amanhã para manter sua sequência.
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-              Próxima ação
-            </p>
-            <h2 className="mt-2 font-editorial text-xl text-foreground">{next.text}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{next.detail}</p>
-            {pending.length > 0 ? (
-              <p className="mt-1 text-xs font-medium text-primary">
-                Faltam {pending.length} {pending.length === 1 ? "ação" : "ações"} para fechar o
-                dia.
-              </p>
-            ) : null}
-            <Link
-              to={next.href}
-              className="lift mt-4 inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold text-primary-foreground"
-              style={{ background: "var(--gradient-primary)" }}
-            >
-              Concluir <ArrowRight className="size-4" />
-            </Link>
-          </>
-        )}
-      </section>
-
-      <div style={stagger(2)}>
-        <Challenge30Card
-          completedDays={completedDays}
-          todayDay={todayChallengeDay}
-          pending={completeDay.isPending}
-          onCompleteToday={handleCompleteDay}
+      <div style={stagger(0)}>
+        <TreeHero
+          seed={userId ?? "apolo"}
+          leaves={leaves}
+          leavesToday={completed.length}
+          completed={completed.length}
+          total={list.length}
+          pending={pending.length}
+          allDone={allDone}
+          hasRecordToday={completed.length > 0 || mealsDone > 0}
+          nextTitle={pending[0]?.title ?? null}
+          hour={hour}
+          minute={minute}
+          uv={uvNow}
+          score={score}
+          ritual={ritual}
+          ritualReady={ritualReady && !missions.isLoading}
+          onOpenDay={() => setOpenRitualOpen(true)}
+          onCloseDay={() => setCloseRitualOpen(true)}
+          onGoToMissions={scrollToMissions}
         />
       </div>
 
-      <section className="surface rise mt-5 p-5" style={stagger(3)}>
+      <div className="rise" style={stagger(1)}>
+        <BodyRoutinePreview
+          uv={uvNow}
+          uvPeakTime={sun.data ? (sun.data.currentTime?.slice(11, 16) ?? null) : null}
+          steps={stepsToday?.steps ?? null}
+          stepGoal={profile.data?.step_goal ?? 10000}
+          sleepHours={sleepLatest?.hours ?? null}
+          sleepQualityLabel={
+            sleepLatest
+              ? sleepLatest.quality >= 70
+                ? "Boa recuperação"
+                : "Recuperação parcial"
+              : null
+          }
+        />
+      </div>
+
+      <section id="missoes" className="surface rise mt-5 scroll-mt-24 p-5" style={stagger(2)}>
         <div className="flex items-center justify-between">
           <h2 className="text-lg">Missões do dia</h2>
           <span className="text-xs text-muted-foreground">
             {completed.length} concluídas · {pending.length} pendentes
           </span>
         </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Cada missão concluída vira uma folha na sua árvore.
+        </p>
         {list.length > 0 ? (
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div
@@ -304,23 +420,23 @@ function Home() {
                   detail={m.detail}
                   done={m.status === "done"}
                   disabled={toggle.isPending}
-                  onToggle={() =>
-                    toggle.mutate(
-                      { id: m.id, status: m.status === "done" ? "pending" : "done" },
-                      {
-                        onSuccess: () => {
-                          if (m.status !== "done") toast.success("Missão concluída.");
-                        },
-                        onError: () => toast.error("Não foi possível salvar. Tente novamente."),
-                      },
-                    )
-                  }
+                  onToggle={() => handleToggle(m)}
                 />
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      <div style={stagger(3)}>
+        <Challenge30Card
+          completedDays={completedDays}
+          todayDay={todayChallengeDay}
+          pending={completeDay.isPending}
+          onCompleteToday={() => setCloseRitualOpen(true)}
+          ctaLabel="Fechar o dia"
+        />
+      </div>
 
       <section className="surface rise mt-5 p-5" style={stagger(4)}>
         <h2 className="text-lg">Sua semana</h2>

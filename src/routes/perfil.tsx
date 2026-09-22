@@ -1,17 +1,35 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Award, ChevronRight, Flame, Leaf, Sun, Users, ClipboardList } from "lucide-react";
+import {
+  Award,
+  ChevronRight,
+  Flame,
+  Leaf,
+  Sparkles,
+  Sun,
+  Users,
+  ClipboardList,
+  Volume2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell, PageTitle } from "@/components/nativo/AppShell";
+import { LivingTree } from "@/components/nativo/LivingTree";
 import { PillarBar } from "@/components/nativo/PillarBar";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth-context";
+import { plural } from "@/lib/format";
+import { cardByKey, useCardCollection } from "@/lib/rituals";
+import { playNote, setSoundEnabled, soundEnabled } from "@/lib/sound";
+import { PILLAR_LEAF_COLOR, stageFor } from "@/lib/tree";
 import {
   averageScore,
   computePillars,
   computeStreak,
+  today,
   useMeals,
   useMissions,
+  useMissionsHistory,
   useMissionsWeek,
   useProfile,
   useProtocol,
@@ -52,6 +70,13 @@ function PerfilPage() {
   const steps = useStepsWeek(userId);
   const sleep = useSleepWeek(userId);
   const protocol = useProtocol(userId);
+  const history = useMissionsHistory(userId);
+  const collection = useCardCollection(userId);
+
+  const [sound, setSound] = useState(true);
+  useEffect(() => {
+    setSound(soundEnabled());
+  }, []);
 
   const [nome, setNome] = useState("");
   const [meta, setMeta] = useState("10000");
@@ -81,6 +106,18 @@ function PerfilPage() {
   const streak = computeStreak(missionsWeek.data ?? []);
   const protocolDays = (protocol.data ?? []).length;
 
+  const leaves = [
+    ...(history.data ?? []).map((m) => ({ key: m.id, pillar: m.pillar, day: m.day })),
+    ...(missions.data ?? [])
+      .filter((m) => m.status === "done")
+      .map((m) => ({ key: m.id, pillar: m.pillar, day: today() })),
+  ];
+  const tree = stageFor(leaves.length);
+  const hour = new Date().getHours();
+  const collectedCards = collection.keys
+    .map((key) => cardByKey(key))
+    .filter((card): card is NonNullable<typeof card> => card !== null);
+
   const conquistas = [
     { label: "Primeiros 7 dias", ok: protocolDays >= 7 },
     { label: "Comida real por 21 dias", ok: protocolDays >= 21 },
@@ -107,6 +144,42 @@ function PerfilPage() {
           <Award className="mx-auto size-5 text-gold" strokeWidth={1.6} />
           <p className="mt-2 font-display text-lg font-semibold">{protocolDays}</p>
           <p className="text-[11px] text-muted-foreground">Dias de protocolo</p>
+        </div>
+      </section>
+
+      <section className="surface mt-6 overflow-hidden">
+        <div className="grid sm:grid-cols-[1fr_1.2fr]">
+          <LivingTree
+            className="block h-auto w-full"
+            seed={userId ?? "apolo"}
+            leaves={leaves}
+            hour={hour}
+          />
+          <div className="flex flex-col justify-center gap-2 p-5">
+            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+              Sua árvore
+            </p>
+            <h2 className="text-xl">
+              Nível {tree.stage.level} · {tree.stage.name}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {plural(leaves.length, "folha")} no total, uma para cada missão concluída.{" "}
+              {tree.next
+                ? tree.remaining === 1
+                  ? `Falta 1 folha para virar ${tree.next.name}.`
+                  : `Faltam ${tree.remaining} folhas para virar ${tree.next.name}.`
+                : "Sua árvore chegou ao último estágio."}
+            </p>
+            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full transition-[width] duration-700 ease-out"
+                style={{
+                  width: `${Math.round(tree.progress * 100)}%`,
+                  background: "var(--gradient-solar)",
+                }}
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -227,6 +300,77 @@ function PerfilPage() {
         <p className="mt-5 font-editorial text-sm italic text-accent">
           "Menos controle. Mais consciência."
         </p>
+      </section>
+
+      <section className="surface mt-6 p-5">
+        <h2 className="flex items-center gap-2 text-lg">
+          <Sparkles className="size-5 text-gold" strokeWidth={1.6} />
+          Coleção de cartas
+        </h2>
+        {collectedCards.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Vire a carta do dia na tela Início para começar sua coleção.
+          </p>
+        ) : (
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {collectedCards.map((card) => {
+              const accent = card.pillar
+                ? (PILLAR_LEAF_COLOR[card.pillar] ?? "var(--primary)")
+                : card.kind === "golden"
+                  ? "var(--gold)"
+                  : "var(--primary)";
+              return (
+                <div
+                  key={card.key}
+                  className="rounded-2xl border p-4"
+                  style={{
+                    borderColor: `color-mix(in oklab, ${accent} 45%, var(--border))`,
+                    background: `linear-gradient(165deg, color-mix(in oklab, ${accent} 14%, var(--card)), var(--card) 70%)`,
+                  }}
+                >
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    {card.kind === "quote"
+                      ? "Frase"
+                      : card.kind === "mission"
+                        ? "Missão bônus"
+                        : card.kind === "focus"
+                          ? "Foco"
+                          : "Carta rara"}
+                  </p>
+                  <p className="mt-1 font-editorial text-sm italic leading-snug text-foreground">
+                    {card.title}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="surface mt-6 p-5">
+        <h2 className="text-lg">Preferências</h2>
+        <label className="mt-3 flex cursor-pointer items-center justify-between gap-4">
+          <span className="flex items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
+              <Volume2 className="size-5" strokeWidth={1.6} />
+            </span>
+            <span>
+              <span className="block text-sm font-medium">Sons e vibração</span>
+              <span className="block text-xs text-muted-foreground">
+                Uma nota a cada missão concluída e um acorde ao fechar o dia.
+              </span>
+            </span>
+          </span>
+          <Switch
+            checked={sound}
+            onCheckedChange={(checked) => {
+              setSoundEnabled(checked);
+              setSound(checked);
+              if (checked) playNote(4);
+            }}
+            aria-label="Sons e vibração"
+          />
+        </label>
       </section>
 
       <section className="surface mt-6 divide-y divide-border/60 p-2">

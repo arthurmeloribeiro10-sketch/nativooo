@@ -1,7 +1,16 @@
 import { useEffect, useId, useState } from "react";
 import { usePrefersReducedMotion } from "@/lib/animation";
 
-export function ScoreRing({ score, size = 112 }: { score: number | null; size?: number }) {
+export function ScoreRing({
+  score,
+  size = 112,
+  onLight = false,
+}: {
+  score: number | null;
+  size?: number;
+  /** sobre superfície clara: trilho em cor de borda em vez de branco translúcido */
+  onLight?: boolean;
+}) {
   const stroke = 12;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -40,7 +49,7 @@ export function ScoreRing({ score, size = 112 }: { score: number | null; size?: 
           r={radius}
           fill="none"
           strokeWidth={stroke}
-          className="stroke-primary-foreground/20"
+          className={onLight ? "stroke-border" : "stroke-primary-foreground/20"}
         />
         <circle
           cx={size / 2}
@@ -56,12 +65,16 @@ export function ScoreRing({ score, size = 112 }: { score: number | null; size?: 
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-3xl font-semibold leading-none">
+        <span
+          className={`font-display font-semibold leading-none ${size >= 90 ? "text-3xl" : "text-2xl"}`}
+        >
           {score === null ? "—" : animatedScore}
         </span>
-        <span className="mt-1 text-[10px] uppercase tracking-[0.12em] opacity-70">
-          {score === null ? "sem dados" : complete ? "dia completo" : "registrado"}
-        </span>
+        {size >= 90 ? (
+          <span className="mt-1 text-[10px] uppercase tracking-[0.12em] opacity-70">
+            {score === null ? "sem dados" : complete ? "dia completo" : "registrado"}
+          </span>
+        ) : null}
       </div>
     </div>
   );

@@ -12,3 +12,10 @@
 - [x] Include imported steps and sleep safely in score; keep glucose and pressure contextual
 - [x] Add replies to community posts with secure creation and deletion
 - [x] Add persistent real-time notifications for community posts and replies
+- [x] "Apolo Vivo": árvore viva na Home (uma folha por missão concluída, cor por pilar, céu por hora do dia, estágios Semente → Copa cheia)
+- [x] Rituais de abrir o dia (intenção + carta com recompensa variável) e fechar o dia (humor + colheita + prévia de amanhã)
+- [x] Som sintetizado e vibração ao concluir missões, virar cartas e fechar o dia (preferência no Perfil)
+- [x] Coleção de cartas e resumo da árvore no Perfil
+- [x] Conclusão do dia do desafio com fallback quando a função `complete_challenge_day` ainda não existe no banco
+- [ ] Aplicar as migrations pendentes no Supabase remoto (`wallet`, `wallet_transactions`, `complete_challenge_day`, scanner) — hoje retornam 404
+- [ ] Sincronizar o estado dos rituais (hoje em localStorage, por usuário e dia) com o Supabase quando houver migration

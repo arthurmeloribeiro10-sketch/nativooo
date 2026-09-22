@@ -8,11 +8,13 @@ export function Challenge30Card({
   todayDay,
   pending,
   onCompleteToday,
+  ctaLabel = "Concluir hoje",
 }: {
   completedDays: number[];
   todayDay: number;
   pending: boolean;
   onCompleteToday: () => void;
+  ctaLabel?: string;
 }) {
   const todayDone = completedDays.includes(todayDay);
   const finished = completedDays.length >= 30;
@@ -99,7 +101,7 @@ export function Challenge30Card({
             className="lift rounded-full px-4 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
             style={{ background: "var(--gradient-primary)" }}
           >
-            Concluir hoje
+            {ctaLabel}
           </button>
         )}
       </div>

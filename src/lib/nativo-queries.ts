@@ -301,6 +301,36 @@ export function useMissionsWeek(userId: string | undefined) {
   });
 }
 
+/**
+ * Missões concluídas nos últimos `days` dias, EXCLUINDO hoje — as folhas
+ * antigas da "Sua Árvore". Hoje vem de useMissions (com update otimista), e
+ * como dias passados não mudam a partir da Home, esta query raramente
+ * precisa ser revalidada.
+ */
+export type LeafRow = { id: string; day: string; pillar: string };
+
+export function useMissionsHistory(userId: string | undefined, days = 120) {
+  return useQuery({
+    queryKey: ["missions-history", userId, days],
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async (): Promise<LeafRow[]> => {
+      const range = lastDays(days);
+      const { data, error } = await supabase
+        .from("missions")
+        .select("id, day, pillar, created_at")
+        .eq("user_id", userId ?? "")
+        .eq("status", "done")
+        .gte("day", range[0]!)
+        .lt("day", today())
+        .order("day", { ascending: true })
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((m) => ({ id: m.id, day: m.day, pillar: m.pillar }));
+    },
+  });
+}
+
 /* ---------- refeições ---------- */
 
 export function useMeals(userId: string | undefined) {
