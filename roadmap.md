@@ -17,5 +17,12 @@
 - [x] Som sintetizado e vibração ao concluir missões, virar cartas e fechar o dia (preferência no Perfil)
 - [x] Coleção de cartas e resumo da árvore no Perfil
 - [x] Conclusão do dia do desafio com fallback quando a função `complete_challenge_day` ainda não existe no banco
+- [x] Redesign "Apolo — App Projeto1" (set/2026): paleta creme + índigo, nav flutuante de 4 abas + botão "Pergunte ao Apolo"
+- [x] Início: sol que nasce com as missões, níveis do sol (Aurora → Solstício), próxima missão com Concluir/Depois, tiles UV/Passos/Sono, lista de missões, cartão do Desafio (dia marcado automaticamente ao fechar as missões)
+- [x] Diário: semana com pontos de registro, registrar refeição por texto/foto (IA)/voz, leitura "comida de verdade", linha do tempo do dia, hábitos em chips
+- [x] Pergunte ao Apolo: chat com persona própria, sugestões, histórico no aparelho
+- [x] Perfil: arco de níveis, sequência/missões/desafio, pilares da semana, dados e metas, lembretes (notificações do navegador), sons, Comunidade "em breve", Apolo Pro (paywall com teste grátis local)
+- [ ] Scanner: leitura de código de barras ainda em configuração — a aba mostra a tela de resultado de exemplo (`src/lib/scanner` continua pronto para ligar)
+- [ ] Definir o preço anual do Apolo Pro (`ANNUAL_PRICE_LABEL` em `src/lib/pro.ts`) e integrar cobrança real
 - [ ] Aplicar as migrations pendentes no Supabase remoto (`wallet`, `wallet_transactions`, `complete_challenge_day`, scanner) — hoje retornam 404
-- [ ] Sincronizar o estado dos rituais (hoje em localStorage, por usuário e dia) com o Supabase quando houver migration
+- [ ] Sincronizar intenção do dia, lembretes, chat e teste grátis (hoje em localStorage) com o Supabase quando houver migration

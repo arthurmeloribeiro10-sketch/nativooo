@@ -122,24 +122,29 @@ function withNaturalMealName(meal: MealRow): MealRow {
 
 const defaultMissions = [
   {
-    title: "Tempo ao ar livre pela manhã",
-    detail: "Aproveite a luz natural e consulte o índice UV para escolher proteção adequada.",
+    title: "Um copo de água ao acordar",
+    detail: "Antes do café, antes do celular. Um copo já acorda o corpo.",
+    pillar: "habitos",
+  },
+  {
+    title: "Café da manhã com proteína",
+    detail: "Ovos, queijo ou iogurte natural seguram a energia até o almoço.",
+    pillar: "alimentacao",
+  },
+  {
+    title: "10 min de sol pela manhã",
+    detail: "Luz natural logo cedo ajuda a acertar seu relógio biológico.",
     pillar: "sol",
   },
   {
     title: "Uma refeição só com comida de verdade",
-    detail: "Proteína, vegetal e um carboidrato natural.",
+    detail: "Proteína, vegetal e um carboidrato natural. Sem embalagem.",
     pillar: "alimentacao",
   },
   {
-    title: "30 minutos sem celular após o jantar",
-    detail: "Deixe o aparelho em outro cômodo.",
+    title: "30 min sem celular antes de dormir",
+    detail: "Deixe o aparelho em outro cômodo. O sono agradece.",
     pillar: "presenca",
-  },
-  {
-    title: "Caminhada de 20 minutos",
-    detail: "Uma caminhada curta já conta.",
-    pillar: "movimento",
   },
 ];
 
@@ -238,6 +243,7 @@ export function useToggleMission(userId: string | undefined) {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["missions", userId, today()] });
       qc.invalidateQueries({ queryKey: ["missions-week", userId] });
+      qc.invalidateQueries({ queryKey: ["missions-done-count", userId] });
     },
   });
 }
@@ -265,6 +271,7 @@ export function useAddMission(userId: string | undefined) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["missions", userId, today()] });
       qc.invalidateQueries({ queryKey: ["missions-week", userId] });
+      qc.invalidateQueries({ queryKey: ["missions-done-count", userId] });
     },
   });
 }
@@ -279,6 +286,7 @@ export function useDeleteMission(userId: string | undefined) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["missions", userId, today()] });
       qc.invalidateQueries({ queryKey: ["missions-week", userId] });
+      qc.invalidateQueries({ queryKey: ["missions-done-count", userId] });
     },
   });
 }
@@ -331,14 +339,31 @@ export function useMissionsHistory(userId: string | undefined, days = 120) {
   });
 }
 
+/** Total de missões concluídas desde o começo — define o nível do sol. */
+export function useMissionsDoneCount(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["missions-done-count", userId],
+    enabled: !!userId,
+    staleTime: 60 * 1000,
+    queryFn: async (): Promise<number> => {
+      const { count, error } = await supabase
+        .from("missions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId ?? "")
+        .eq("status", "done");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+}
+
 /* ---------- refeições ---------- */
 
-export function useMeals(userId: string | undefined) {
+export function useMeals(userId: string | undefined, day: string = today()) {
   return useQuery({
-    queryKey: ["meals", userId, today()],
+    queryKey: ["meals", userId, day],
     enabled: !!userId,
     queryFn: async (): Promise<MealRow[]> => {
-      const day = today();
       const { data, error } = await supabase
         .from("meals")
         .select(
@@ -355,7 +380,11 @@ export function useMeals(userId: string | undefined) {
 
 export function useMealMutations(userId: string | undefined) {
   const qc = useQueryClient();
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["meals", userId, today()] });
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["meals", userId] });
+    qc.invalidateQueries({ queryKey: ["meals-week", userId] });
+    qc.invalidateQueries({ queryKey: ["recent-meals", userId] });
+  };
 
   const toggle = useMutation({
     mutationFn: async ({ id, done }: { id: string; done: boolean }) => {
@@ -376,10 +405,11 @@ export function useMealMutations(userId: string | undefined) {
       time_label?: string;
       done?: boolean;
       note?: string;
+      day?: string;
     }) => {
       const { error } = await supabase.from("meals").insert({
         user_id: userId ?? "",
-        day: today(),
+        day: meal.day ?? today(),
         name: meal.name,
         items: meal.items ?? [],
         kcal: meal.kcal ?? 0,
@@ -478,6 +508,29 @@ export function useDietPlans(userId: string | undefined) {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
+    },
+  });
+}
+
+/** Refeições realizadas nos últimos 7 dias — pilar Alimentação da semana e pontos do calendário. */
+export function useMealsWeek(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["meals-week", userId],
+    enabled: !!userId,
+    queryFn: async (): Promise<MealRow[]> => {
+      const days = lastDays(7);
+      const { data, error } = await supabase
+        .from("meals")
+        .select(
+          "id, day, time_label, name, items, kcal, done, note, plan_id, origin, kcal_estimated",
+        )
+        .eq("user_id", userId ?? "")
+        .eq("done", true)
+        .gte("day", days[0]!)
+        .lte("day", days[days.length - 1]!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return ((data ?? []) as MealRow[]).map(withNaturalMealName);
     },
   });
 }
@@ -669,20 +722,39 @@ export function useHealthData(userId: string | undefined) {
 
 /* ---------- protocolo ---------- */
 
+export type ProtocolRow = { day_number: number; completed_at: string };
+
 export function useProtocol(userId: string | undefined) {
   return useQuery({
     queryKey: ["protocol", userId],
     enabled: !!userId,
-    queryFn: async (): Promise<number[]> => {
+    queryFn: async (): Promise<ProtocolRow[]> => {
       const { data, error } = await supabase
         .from("protocol_progress")
-        .select("day_number")
+        .select("day_number, completed_at")
         .eq("user_id", userId ?? "")
         .order("day_number", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((r) => r.day_number as number);
+      return (data ?? []) as ProtocolRow[];
     },
   });
+}
+
+/** Estado do Desafio Apolo a partir das linhas de protocol_progress. */
+export function challengeState(rows: ProtocolRow[], timeZone = browserTimeZone()) {
+  const completedDays = rows.map((r) => r.day_number);
+  const todayStr = today(timeZone);
+  const markedToday = rows.find(
+    (r) => new Date(r.completed_at).toLocaleDateString("en-CA", { timeZone }) === todayStr,
+  );
+  const todayDay = markedToday ? markedToday.day_number : Math.min(30, completedDays.length + 1);
+  return {
+    completedDays,
+    completedCount: completedDays.length,
+    todayDay,
+    doneToday: Boolean(markedToday),
+    finished: completedDays.length >= 30,
+  };
 }
 
 export function useToggleProtocolDay(userId: string | undefined) {
@@ -879,140 +951,7 @@ export function useCommunityNotifications(userId: string | undefined) {
   };
 }
 
-/* ---------- score ---------- */
-
-export type PillarScore = {
-  key: string;
-  label: string;
-  score: number | null;
-  note: string;
-  href: string;
-};
-
-export function computePillars(input: {
-  meals: MealRow[];
-  missions: MissionRow[];
-  steps: StepRow[];
-  sleep: SleepRow[];
-  stepGoal: number;
-  mealGoal: number;
-}): PillarScore[] {
-  const { meals, missions, steps, sleep, stepGoal, mealGoal } = input;
-  const pct = (v: number) => Math.max(0, Math.min(100, Math.round(v * 100)));
-
-  const mealsDone = meals.filter((m) => m.done).length;
-  const alimentacao = mealsDone ? pct(mealsDone / Math.max(mealGoal, mealsDone)) : null;
-
-  const stepsToday = steps.find((s) => s.day === today());
-  const movimento = stepsToday ? pct(stepsToday.steps / stepGoal) : null;
-
-  const sleepLatest = [...sleep].sort((a, b) => b.day.localeCompare(a.day))[0];
-  const sono = sleepLatest
-    ? pct((Math.min(sleepLatest.hours, 8) / 8) * 0.6 + (sleepLatest.quality / 100) * 0.4)
-    : null;
-
-  const byPillar = (p: string) => {
-    const list = missions.filter((m) => m.pillar === p);
-    const recorded = list.filter((m) => m.status !== "pending");
-    return recorded.length
-      ? pct(recorded.filter((m) => m.status === "done").length / recorded.length)
-      : null;
-  };
-
-  return [
-    {
-      key: "alimentacao",
-      label: "Alimentação",
-      score: alimentacao,
-      note: mealsDone
-        ? `${mealsDone} de ${mealGoal} refeições registradas hoje.`
-        : "Nenhuma refeição registrada como realizada hoje.",
-      href: "/dieta",
-    },
-    {
-      key: "movimento",
-      label: "Movimento",
-      score: movimento,
-      note: stepsToday
-        ? `${stepsToday.steps.toLocaleString("pt-BR")} passos informados de ${stepGoal.toLocaleString("pt-BR")}.`
-        : "Passos ainda não informados hoje.",
-      href: "/corpo",
-    },
-    {
-      key: "sono",
-      label: "Sono e recuperação",
-      score: sono,
-      note: sleepLatest
-        ? `${sleepLatest.hours} h no último registro (${weekdayLabel(sleepLatest.day)}).`
-        : "Sono ainda não registrado.",
-      href: "/corpo",
-    },
-    {
-      key: "sol",
-      label: "Momentos ao ar livre",
-      score: byPillar("sol"),
-      note: "Atividades ao ar livre registradas hoje.",
-      href: "/registro",
-    },
-    {
-      key: "presenca",
-      label: "Presença e telas",
-      score: byPillar("presenca"),
-      note: "Momentos sem tela no seu dia.",
-      href: "/registro",
-    },
-    {
-      key: "habitos",
-      label: "Outros hábitos",
-      score: byPillar("habitos"),
-      note: "Outros hábitos registrados hoje.",
-      href: "/registro",
-    },
-  ];
-}
-
-/**
- * Série diária (últimos N dias) do mesmo cálculo usado em computePillars,
- * pilar a pilar — para as mini-sparklines dos PillarCard na Home. Reaproveita
- * as fórmulas reais; nunca inventa dado. "alimentacao" retorna só `null`
- * porque hoje só existe histórico de refeições do dia atual (useMeals não
- * busca a semana) — ver pendências no resumo da sessão.
- */
-export function computePillarTrend(input: {
-  key: string;
-  missions: MissionRow[];
-  steps: StepRow[];
-  sleep: SleepRow[];
-  stepGoal: number;
-  days: string[];
-}): Array<number | null> {
-  const { key, missions, steps, sleep, stepGoal, days } = input;
-  const pct = (v: number) => Math.max(0, Math.min(100, Math.round(v * 100)));
-
-  return days.map((day) => {
-    if (key === "movimento") {
-      const row = steps.find((s) => s.day === day);
-      return row ? pct(row.steps / stepGoal) : null;
-    }
-    if (key === "sono") {
-      const row = sleep.find((s) => s.day === day);
-      return row ? pct((Math.min(row.hours, 8) / 8) * 0.6 + (row.quality / 100) * 0.4) : null;
-    }
-    if (key === "alimentacao") return null;
-
-    const dayMissions = missions.filter((m) => m.day === day && m.pillar === key);
-    const recorded = dayMissions.filter((m) => m.status !== "pending");
-    return recorded.length
-      ? pct(recorded.filter((m) => m.status === "done").length / recorded.length)
-      : null;
-  });
-}
-
-export function averageScore(pillars: PillarScore[]): number | null {
-  const recorded = pillars.filter((p): p is PillarScore & { score: number } => p.score !== null);
-  if (!recorded.length) return null;
-  return Math.round(recorded.reduce((s, p) => s + p.score, 0) / recorded.length);
-}
+/* ---------- sequência ---------- */
 
 export function computeStreak(missions: MissionRow[]): number {
   const doneDays = new Set(missions.filter((m) => m.done).map((m) => m.day));
@@ -1025,4 +964,55 @@ export function computeStreak(missions: MissionRow[]): number {
     else if (i > 0) break;
   }
   return streak;
+}
+
+/* ---------- pilares da semana ---------- */
+
+export type WeeklyPillar = { key: string; label: string; score: number | null };
+
+/**
+ * Média dos últimos 7 dias, pilar a pilar, com as mesmas regras do dia:
+ * alimentação = refeições de verdade sobre a meta, movimento = passos sobre a
+ * meta, sono = horas e qualidade, sol e presença = missões concluídas do
+ * pilar. Dias sem registro não entram na média; sem nenhum dado, null.
+ */
+export function computeWeeklyPillars(input: {
+  meals: MealRow[];
+  missions: MissionRow[];
+  steps: StepRow[];
+  sleep: SleepRow[];
+  stepGoal: number;
+  mealGoal: number;
+  isRealMeal: (meal: MealRow) => boolean;
+}): WeeklyPillar[] {
+  const { meals, missions, steps, sleep, stepGoal, mealGoal, isRealMeal } = input;
+  const pct = (v: number) => Math.max(0, Math.min(100, Math.round(v * 100)));
+  const avg = (values: number[]) =>
+    values.length ? Math.round(values.reduce((s, v) => s + v, 0) / values.length) : null;
+  const days = lastDays(7);
+
+  const alimentacao = avg(
+    days
+      .map((day) => meals.filter((m) => m.day === day && m.done))
+      .filter((list) => list.length > 0)
+      .map((list) => pct(list.filter(isRealMeal).length / Math.max(mealGoal, list.length))),
+  );
+  const movimento = avg(steps.map((s) => pct(s.steps / stepGoal)));
+  const sono = avg(
+    sleep.map((s) => pct((Math.min(s.hours, 8) / 8) * 0.6 + (s.quality / 100) * 0.4)),
+  );
+  const byPillar = (keys: string[]) => {
+    const recorded = missions.filter((m) => keys.includes(m.pillar) && m.status !== "pending");
+    return recorded.length
+      ? pct(recorded.filter((m) => m.status === "done").length / recorded.length)
+      : null;
+  };
+
+  return [
+    { key: "alimentacao", label: "Alimentação", score: alimentacao },
+    { key: "movimento", label: "Movimento", score: movimento ?? byPillar(["movimento"]) },
+    { key: "sono", label: "Sono e recuperação", score: sono ?? byPillar(["sono"]) },
+    { key: "sol", label: "Sol e ar livre", score: byPillar(["sol"]) },
+    { key: "presenca", label: "Presença e telas", score: byPillar(["presenca"]) },
+  ];
 }

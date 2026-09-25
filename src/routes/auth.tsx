@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import apolloMark from "@/assets/apollo-mark.png.asset.json";
+import { ApoloMark } from "@/components/apolo/ApoloMark";
 import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -84,22 +84,18 @@ function AuthPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-12">
+    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-6 py-12">
       <div className="rise text-center">
-        <img
-          src={apolloMark.url}
-          alt="Símbolo APOLO"
-          className="mx-auto size-12 rounded-full object-cover"
-        />
-        <h1 className="mt-4 font-display text-2xl font-bold tracking-[0.22em] text-primary">
-          APOLO
+        <ApoloMark className="mx-auto size-14 text-primary" />
+        <h1 className="mt-4 font-display text-[2.4rem] font-semibold italic leading-none text-primary">
+          Apolo
         </h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Seu estilo de vida em prática. Entre para guardar seu progresso.
+        <p className="mt-3 text-[15px] text-muted-foreground">
+          Mais energia, sem neura. Entre para guardar seu progresso.
         </p>
       </div>
 
-      <div className="surface mt-8 p-6">
+      <div className="surface mt-8 p-6 shadow-soft">
         <div className="mb-5 grid grid-cols-2 gap-2 rounded-full bg-secondary/60 p-1 text-sm">
           {(["entrar", "criar"] as const).map((m) => (
             <button
@@ -169,7 +165,7 @@ function AuthPage() {
         </button>
       </div>
 
-      <p className="mt-6 text-center font-editorial text-sm italic text-accent">
+      <p className="mt-6 text-center font-editorial text-[15px] italic text-muted-foreground">
         "Menos controle. Mais consciência."
       </p>
     </div>

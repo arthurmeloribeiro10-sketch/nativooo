@@ -1,35 +1,28 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ChevronRight, SlidersHorizontal, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  Award,
-  ChevronRight,
-  Flame,
-  Leaf,
-  Sparkles,
-  Sun,
-  Users,
-  ClipboardList,
-  Volume2,
-} from "lucide-react";
 import { toast } from "sonner";
 
-import { AppShell, PageTitle } from "@/components/nativo/AppShell";
-import { LivingTree } from "@/components/nativo/LivingTree";
-import { PillarBar } from "@/components/nativo/PillarBar";
+import { AppShell } from "@/components/nativo/AppShell";
+import { LevelArc } from "@/components/apolo/LevelArc";
+import { Paywall } from "@/components/apolo/Paywall";
+import { PillarBars } from "@/components/apolo/PillarBars";
+import { ProfileDataSheet } from "@/components/apolo/ProfileDataSheet";
+import { RemindersSheet } from "@/components/apolo/RemindersSheet";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/auth-context";
-import { plural } from "@/lib/format";
-import { cardByKey, useCardCollection } from "@/lib/rituals";
+import { firstName } from "@/lib/format";
+import { levelFor } from "@/lib/levels";
+import { readMeal } from "@/lib/meals";
+import { useProStatus } from "@/lib/pro";
 import { playNote, setSoundEnabled, soundEnabled } from "@/lib/sound";
-import { PILLAR_LEAF_COLOR, stageFor } from "@/lib/tree";
 import {
-  averageScore,
-  computePillars,
+  challengeState,
   computeStreak,
-  today,
-  useMeals,
-  useMissions,
-  useMissionsHistory,
+  computeWeeklyPillars,
+  useMealsWeek,
+  useMissionsDoneCount,
   useMissionsWeek,
   useProfile,
   useProtocol,
@@ -41,17 +34,12 @@ import {
 export const Route = createFileRoute("/perfil")({
   head: () => ({
     meta: [
-      { title: "Seu perfil e evolução — APOLO" },
+      { title: "Perfil — Apolo" },
       {
         name: "description",
-        content:
-          "Histórico do Apolo Score, protocolo, sequência e evolução dos pilares do seu estilo de vida.",
+        content: "Seu nível, sua sequência, seus pilares da semana e suas preferências.",
       },
-      { property: "og:title", content: "Seu perfil e evolução — APOLO" },
-      {
-        property: "og:description",
-        content: "Menos controle ansioso. Mais vida bem vivida — acompanhe sua evolução real.",
-      },
+      { property: "og:title", content: "Perfil — Apolo" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -59,347 +47,250 @@ export const Route = createFileRoute("/perfil")({
   component: PerfilPage,
 });
 
+const MONTHS = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
+
+function sinceLabel(iso: string | undefined) {
+  if (!iso) return "No Apolo";
+  const date = new Date(iso);
+  const month = MONTHS[date.getMonth()] ?? "";
+  const sameYear = date.getFullYear() === new Date().getFullYear();
+  return `No Apolo desde ${month}${sameYear ? "" : ` de ${date.getFullYear()}`}`;
+}
+
 function PerfilPage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const userId = user?.id;
+  const navigate = useNavigate();
   const profile = useProfile(userId);
   const updateProfile = useUpdateProfile(userId);
-  const missions = useMissions(userId);
   const missionsWeek = useMissionsWeek(userId);
-  const meals = useMeals(userId);
+  const doneCount = useMissionsDoneCount(userId);
+  const mealsWeek = useMealsWeek(userId);
   const steps = useStepsWeek(userId);
   const sleep = useSleepWeek(userId);
   const protocol = useProtocol(userId);
-  const history = useMissionsHistory(userId);
-  const collection = useCardCollection(userId);
+  const pro = useProStatus(userId);
 
   const [sound, setSound] = useState(true);
   useEffect(() => {
     setSound(soundEnabled());
   }, []);
 
-  const [nome, setNome] = useState("");
-  const [meta, setMeta] = useState("10000");
-  const [metaRefeicoes, setMetaRefeicoes] = useState("4");
-  const [nascimento, setNascimento] = useState("");
-  const [sexoCalculo, setSexoCalculo] = useState<"" | "female" | "male">("");
+  const [dataOpen, setDataOpen] = useState(false);
+  const [remindersOpen, setRemindersOpen] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
-  useEffect(() => {
-    if (profile.data) {
-      setNome(profile.data.display_name);
-      setMeta(String(profile.data.step_goal));
-      setMetaRefeicoes(String(profile.data.meal_goal));
-      setNascimento(profile.data.birth_date ?? "");
-      setSexoCalculo(profile.data.metabolic_sex ?? "");
-    }
-  }, [profile.data?.id]);
-
-  const pillars = computePillars({
-    meals: meals.data ?? [],
-    missions: missions.data ?? [],
+  const name = firstName(profile.data?.display_name);
+  const totalDone = doneCount.data ?? 0;
+  const level = levelFor(totalDone);
+  const streak = computeStreak(missionsWeek.data ?? []);
+  const challenge = challengeState(protocol.data ?? [], profile.data?.timezone);
+  const pillars = computeWeeklyPillars({
+    meals: mealsWeek.data ?? [],
+    missions: missionsWeek.data ?? [],
     steps: steps.data ?? [],
     sleep: sleep.data ?? [],
-    stepGoal: profile.data?.step_goal ?? 10000,
+    stepGoal: profile.data?.step_goal ?? 8000,
     mealGoal: profile.data?.meal_goal ?? 4,
+    isRealMeal: (meal) => readMeal(meal).tag === "real",
   });
-  const score = averageScore(pillars);
-  const streak = computeStreak(missionsWeek.data ?? []);
-  const protocolDays = (protocol.data ?? []).length;
 
-  const leaves = [
-    ...(history.data ?? []).map((m) => ({ key: m.id, pillar: m.pillar, day: m.day })),
-    ...(missions.data ?? [])
-      .filter((m) => m.status === "done")
-      .map((m) => ({ key: m.id, pillar: m.pillar, day: today() })),
+  const rows = [
+    {
+      key: "dados",
+      label: "Seus dados e metas",
+      onClick: () => setDataOpen(true),
+    },
+    {
+      key: "lembretes",
+      label: "Lembretes",
+      onClick: () => setRemindersOpen(true),
+    },
   ];
-  const tree = stageFor(leaves.length);
-  const hour = new Date().getHours();
-  const collectedCards = collection.keys
-    .map((key) => cardByKey(key))
-    .filter((card): card is NonNullable<typeof card> => card !== null);
-
-  const conquistas = [
-    { label: "Primeiros 7 dias", ok: protocolDays >= 7 },
-    { label: "Comida real por 21 dias", ok: protocolDays >= 21 },
-    { label: "Sol da manhã · 10 dias", ok: protocolDays >= 10 },
-    { label: "Semana sem desistir", ok: streak >= 7 },
-  ].filter((c) => c.ok);
 
   return (
     <AppShell>
-      <PageTitle title={profile.data?.display_name ?? "Seu perfil"} subtitle={user?.email ?? ""} />
+      <ProfileDataSheet
+        open={dataOpen}
+        onOpenChange={setDataOpen}
+        profile={profile.data}
+        email={user?.email ?? ""}
+        saving={updateProfile.isPending}
+        onSave={(values) =>
+          updateProfile.mutate(values, {
+            onSuccess: () => {
+              setDataOpen(false);
+              toast.success("Perfil atualizado.");
+            },
+            onError: () => toast.error("Não foi possível salvar. Tente novamente."),
+          })
+        }
+        onSignOut={async () => {
+          await signOut();
+          navigate({ to: "/auth" });
+        }}
+      />
+      <RemindersSheet open={remindersOpen} onOpenChange={setRemindersOpen} userId={userId} />
+      <Paywall
+        open={paywallOpen}
+        onClose={() => setPaywallOpen(false)}
+        trialActive={pro.trialActive}
+        daysLeft={pro.daysLeft}
+        onStart={() => {
+          pro.startTrial();
+          setPaywallOpen(false);
+          toast.success("Seus 7 dias grátis começaram. Aproveite tudo.");
+        }}
+        onRestore={() =>
+          toast(
+            pro.trialActive
+              ? "Seu teste grátis já está ativo neste aparelho."
+              : "Nenhuma assinatura encontrada para restaurar.",
+          )
+        }
+      />
 
-      <section className="surface grid grid-cols-3 divide-x divide-border/60 p-5 text-center">
-        <div>
-          <Leaf className="mx-auto size-5 text-leaf" strokeWidth={1.6} />
-          <p className="mt-2 font-display text-lg font-semibold">{score ?? "—"}</p>
-          <p className="text-[11px] text-muted-foreground">Progresso registrado</p>
+      <header className="rise flex items-center gap-4">
+        <Avatar className="size-16">
+          <AvatarFallback className="bg-secondary font-display text-2xl font-semibold text-primary">
+            {name.slice(0, 1).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-[2rem] leading-tight">{name}</h1>
+          <p className="text-[15px] text-muted-foreground">{sinceLabel(user?.created_at)}</p>
         </div>
-        <div>
-          <Flame className="mx-auto size-5 text-terracotta" strokeWidth={1.6} />
-          <p className="mt-2 font-display text-lg font-semibold">{streak}</p>
-          <p className="text-[11px] text-muted-foreground">Sequência</p>
-        </div>
-        <div>
-          <Award className="mx-auto size-5 text-gold" strokeWidth={1.6} />
-          <p className="mt-2 font-display text-lg font-semibold">{protocolDays}</p>
-          <p className="text-[11px] text-muted-foreground">Dias de protocolo</p>
-        </div>
-      </section>
-
-      <section className="surface mt-6 overflow-hidden">
-        <div className="grid sm:grid-cols-[1fr_1.2fr]">
-          <LivingTree
-            className="block h-auto w-full"
-            seed={userId ?? "apolo"}
-            leaves={leaves}
-            hour={hour}
-          />
-          <div className="flex flex-col justify-center gap-2 p-5">
-            <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-              Sua árvore
-            </p>
-            <h2 className="text-xl">
-              Nível {tree.stage.level} · {tree.stage.name}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {plural(leaves.length, "folha")} no total, uma para cada missão concluída.{" "}
-              {tree.next
-                ? tree.remaining === 1
-                  ? `Falta 1 folha para virar ${tree.next.name}.`
-                  : `Faltam ${tree.remaining} folhas para virar ${tree.next.name}.`
-                : "Sua árvore chegou ao último estágio."}
-            </p>
-            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full transition-[width] duration-700 ease-out"
-                style={{
-                  width: `${Math.round(tree.progress * 100)}%`,
-                  background: "var(--gradient-solar)",
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="surface mt-6 p-5">
-        <h2 className="text-lg">Evolução dos pilares</h2>
-        <div className="mt-2 divide-y divide-border/60">
-          {pillars.map((p) => (
-            <PillarBar key={p.key} label={p.label} score={p.score} />
-          ))}
-        </div>
-      </section>
-
-      <section className="surface mt-6 p-5">
-        <h2 className="text-lg">Seus dados</h2>
-        <label htmlFor="nome" className="mt-4 block text-sm font-medium">
-          Como quer ser chamado
-        </label>
-        <input
-          id="nome"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-          className="mt-2 w-full rounded-2xl border border-input bg-background/70 px-4 py-3 text-sm outline-none focus:border-leaf"
-        />
-        <label htmlFor="meta-refeicoes" className="mt-4 block text-sm font-medium">
-          Quantidade planejada de refeições
-        </label>
-        <input
-          id="meta-refeicoes"
-          type="number"
-          min={1}
-          max={10}
-          value={metaRefeicoes}
-          onChange={(e) => setMetaRefeicoes(e.target.value)}
-          className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm"
-        />
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label htmlFor="nascimento" className="block text-sm font-medium">
-            Data de nascimento
-            <input
-              id="nascimento"
-              type="date"
-              value={nascimento}
-              onChange={(e) => setNascimento(e.target.value)}
-              className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm"
-            />
-          </label>
-          <label htmlFor="sexo-calculo" className="block text-sm font-medium">
-            Sexo usado no cálculo
-            <select
-              id="sexo-calculo"
-              value={sexoCalculo}
-              onChange={(e) => setSexoCalculo(e.target.value as "" | "female" | "male")}
-              className="mt-2 w-full rounded-lg border border-input bg-background px-4 py-3 text-sm"
-            >
-              <option value="">Selecionar</option>
-              <option value="female">Feminino</option>
-              <option value="male">Masculino</option>
-            </select>
-          </label>
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Esses dados são privados e usados somente para estimar sua necessidade energética.
-        </p>
-        <label htmlFor="meta" className="mt-4 block text-sm font-medium">
-          Meta diária de passos
-        </label>
-        <input
-          id="meta"
-          type="number"
-          min={1000}
-          step={500}
-          value={meta}
-          onChange={(e) => setMeta(e.target.value)}
-          className="mt-2 w-full rounded-2xl border border-input bg-background/70 px-4 py-3 text-sm outline-none focus:border-leaf"
-        />
         <button
           type="button"
-          onClick={() =>
-            updateProfile.mutate(
-              {
-                display_name: nome.trim() || "Apolo",
-                step_goal: Number(meta) || 10000,
-                meal_goal: Number(metaRefeicoes) || 4,
-                birth_date: nascimento || null,
-                metabolic_sex: sexoCalculo || null,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-              },
-              {
-                onSuccess: () => toast.success("Perfil atualizado."),
-                onError: () => toast.error("Não foi possível salvar suas metas. Tente novamente."),
-              },
-            )
-          }
-          className="mt-4 w-full rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+          onClick={() => setDataOpen(true)}
+          aria-label="Configurações"
+          className="press flex size-12 shrink-0 items-center justify-center rounded-full bg-card text-foreground shadow-soft"
         >
-          Salvar alterações
+          <SlidersHorizontal className="size-5" strokeWidth={1.8} />
         </button>
-      </section>
+      </header>
 
-      <section className="surface mt-6 p-5">
-        <h2 className="text-lg">Conquistas</h2>
-        {conquistas.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Suas conquistas aparecem conforme você avança no protocolo.
-          </p>
-        ) : (
-          <div className="mt-4 flex flex-wrap gap-2 text-xs">
-            {conquistas.map((c) => (
-              <span
-                key={c.label}
-                className="rounded-full border border-gold/50 bg-gold/15 px-4 py-2 font-medium text-foreground"
-              >
-                {c.label}
-              </span>
-            ))}
-          </div>
-        )}
-        <p className="mt-5 font-editorial text-sm italic text-accent">
-          "Menos controle. Mais consciência."
+      <section
+        className="surface rise mt-6 p-6"
+        style={{ "--stagger": "70ms" } as React.CSSProperties}
+      >
+        <LevelArc currentLevel={level.current.level} />
+        <div className="mt-5 flex items-baseline justify-between">
+          <h2 className="text-[1.6rem]">
+            Nível {level.current.level} · {level.current.name}
+          </h2>
+          <span className="text-[15px] text-muted-foreground">
+            {level.next ? `${totalDone} / ${level.next.min}` : `${totalDone} missões`}
+          </span>
+        </div>
+        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-sand">
+          <div
+            className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
+            style={{ width: `${Math.round(level.progress * 100)}%` }}
+          />
+        </div>
+        <p className="mt-3 text-[15px] text-muted-foreground">
+          {level.next
+            ? level.remaining === 1
+              ? `Falta 1 missão para chegar à ${level.next.name}.`
+              : `Faltam ${level.remaining} missões para chegar à ${level.next.name}.`
+            : "Você chegou ao Solstício. Seu sol está no ponto mais alto."}
         </p>
       </section>
 
-      <section className="surface mt-6 p-5">
-        <h2 className="flex items-center gap-2 text-lg">
-          <Sparkles className="size-5 text-gold" strokeWidth={1.6} />
-          Coleção de cartas
-        </h2>
-        {collectedCards.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Vire a carta do dia na tela Início para começar sua coleção.
-          </p>
-        ) : (
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            {collectedCards.map((card) => {
-              const accent = card.pillar
-                ? (PILLAR_LEAF_COLOR[card.pillar] ?? "var(--primary)")
-                : card.kind === "golden"
-                  ? "var(--gold)"
-                  : "var(--primary)";
-              return (
-                <div
-                  key={card.key}
-                  className="rounded-2xl border p-4"
-                  style={{
-                    borderColor: `color-mix(in oklab, ${accent} 45%, var(--border))`,
-                    background: `linear-gradient(165deg, color-mix(in oklab, ${accent} 14%, var(--card)), var(--card) 70%)`,
-                  }}
-                >
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                    {card.kind === "quote"
-                      ? "Frase"
-                      : card.kind === "mission"
-                        ? "Missão bônus"
-                        : card.kind === "focus"
-                          ? "Foco"
-                          : "Carta rara"}
-                  </p>
-                  <p className="mt-1 font-editorial text-sm italic leading-snug text-foreground">
-                    {card.title}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      <section className="surface mt-6 p-5">
-        <h2 className="text-lg">Preferências</h2>
-        <label className="mt-3 flex cursor-pointer items-center justify-between gap-4">
-          <span className="flex items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
-              <Volume2 className="size-5" strokeWidth={1.6} />
-            </span>
-            <span>
-              <span className="block text-sm font-medium">Sons e vibração</span>
-              <span className="block text-xs text-muted-foreground">
-                Uma nota a cada missão concluída e um acorde ao fechar o dia.
-              </span>
-            </span>
-          </span>
-          <Switch
-            checked={sound}
-            onCheckedChange={(checked) => {
-              setSoundEnabled(checked);
-              setSound(checked);
-              if (checked) playNote(4);
-            }}
-            aria-label="Sons e vibração"
-          />
-        </label>
-      </section>
-
-      <section className="surface mt-6 divide-y divide-border/60 p-2">
+      <div
+        className="rise mt-4 grid grid-cols-3 gap-3"
+        style={{ "--stagger": "140ms" } as React.CSSProperties}
+      >
         {[
-          { to: "/corpo", label: "Corpo", detail: "Índice UV, passos e sono", icon: Sun },
-          { to: "/comunidade", label: "Comunidade", detail: "Ranking e feed", icon: Users },
-          {
-            to: "/protocolo",
-            label: "Protocolo",
-            detail: "Sua jornada de 30 dias",
-            icon: ClipboardList,
-          },
-        ].map(({ to, label, detail, icon: Icon }) => (
-          <Link
-            key={to}
-            to={to}
-            className="flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-secondary/60"
-          >
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
-              <Icon className="size-5" strokeWidth={1.6} />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-medium">{label}</span>
-              <span className="block truncate text-xs text-muted-foreground">{detail}</span>
-            </span>
-            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-          </Link>
+          { value: String(streak), label: streak === 1 ? "dia seguido" : "dias seguidos" },
+          { value: String(totalDone), label: totalDone === 1 ? "missão feita" : "missões feitas" },
+          { value: `${challenge.completedCount}/30`, label: "dias de desafio" },
+        ].map((stat) => (
+          <div key={stat.label} className="surface p-4">
+            <p className="font-display text-[1.7rem] font-semibold leading-none text-foreground">
+              {stat.value}
+            </p>
+            <p className="mt-2 text-[12px] leading-tight text-muted-foreground">{stat.label}</p>
+          </div>
         ))}
+      </div>
+
+      <PillarBars pillars={pillars} />
+
+      <section
+        className="surface rise mt-5 px-6"
+        style={{ "--stagger": "280ms" } as React.CSSProperties}
+      >
+        <ul className="divide-y divide-border">
+          {rows.map((row) => (
+            <li key={row.key}>
+              <button
+                type="button"
+                onClick={row.onClick}
+                className="press flex min-h-[4.25rem] w-full items-center justify-between text-left text-[17px] text-foreground"
+              >
+                {row.label}
+                <ChevronRight className="size-5 text-muted-foreground" strokeWidth={1.8} />
+              </button>
+            </li>
+          ))}
+          <li>
+            <label className="flex min-h-[4.25rem] cursor-pointer items-center justify-between gap-4 text-[17px] text-foreground">
+              Sons e vibração
+              <Switch
+                checked={sound}
+                onCheckedChange={(checked) => {
+                  setSoundEnabled(checked);
+                  setSound(checked);
+                  if (checked) playNote(4);
+                }}
+                aria-label="Sons e vibração"
+                className="h-8 w-[3.4rem] data-[state=checked]:bg-primary data-[state=unchecked]:bg-sand-deep [&>span]:size-7 [&>span]:data-[state=checked]:translate-x-6"
+              />
+            </label>
+          </li>
+          <li className="flex min-h-[4.25rem] items-center justify-between text-[17px] text-muted-foreground">
+            Comunidade
+            <span className="rounded-full bg-sand px-3.5 py-1.5 text-[13px] font-semibold text-gold-deep">
+              Em breve
+            </span>
+          </li>
+        </ul>
       </section>
+
+      <button
+        type="button"
+        onClick={() => setPaywallOpen(true)}
+        className="surface-deep rise mt-5 flex w-full items-center gap-4 p-5 text-left"
+        style={{ "--stagger": "350ms" } as React.CSSProperties}
+      >
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary-foreground/15">
+          <Sparkles className="size-5" strokeWidth={1.8} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[17px] font-semibold">Apolo Pro</span>
+          <span className="block text-[14px] text-primary-foreground/80">
+            {pro.trialActive
+              ? `Teste grátis ativo · ${pro.daysLeft === 1 ? "1 dia restante" : `${pro.daysLeft} dias restantes`}`
+              : "Scanner ilimitado, Pergunte ao Apolo e mais. 7 dias grátis."}
+          </span>
+        </span>
+        <ChevronRight className="size-5 shrink-0 text-primary-foreground/70" strokeWidth={1.8} />
+      </button>
     </AppShell>
   );
 }

@@ -15,9 +15,12 @@ import { Route as ComunidadeRouteImport } from './routes/comunidade'
 import { Route as CorpoRouteImport } from './routes/corpo'
 import { Route as DietaRouteImport } from './routes/dieta'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as PerguntarRouteImport } from './routes/perguntar'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as ProtocoloRouteImport } from './routes/protocolo'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as ScannerRouteImport } from './routes/scanner'
+import { Route as TermosRouteImport } from './routes/termos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -49,6 +52,16 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PerguntarRoute = PerguntarRouteImport.update({
+  id: '/perguntar',
+  path: '/perguntar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProtocoloRoute = ProtocoloRouteImport.update({
   id: '/protocolo',
   path: '/protocolo',
@@ -64,6 +77,11 @@ const ScannerRoute = ScannerRouteImport.update({
   path: '/scanner',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -72,9 +90,12 @@ export interface FileRoutesByFullPath {
   '/corpo': typeof CorpoRoute
   '/dieta': typeof DietaRoute
   '/perfil': typeof PerfilRoute
+  '/perguntar': typeof PerguntarRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/protocolo': typeof ProtocoloRoute
   '/registro': typeof RegistroRoute
   '/scanner': typeof ScannerRoute
+  '/termos': typeof TermosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,9 +104,12 @@ export interface FileRoutesByTo {
   '/corpo': typeof CorpoRoute
   '/dieta': typeof DietaRoute
   '/perfil': typeof PerfilRoute
+  '/perguntar': typeof PerguntarRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/protocolo': typeof ProtocoloRoute
   '/registro': typeof RegistroRoute
   '/scanner': typeof ScannerRoute
+  '/termos': typeof TermosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,9 +119,12 @@ export interface FileRoutesById {
   '/corpo': typeof CorpoRoute
   '/dieta': typeof DietaRoute
   '/perfil': typeof PerfilRoute
+  '/perguntar': typeof PerguntarRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/protocolo': typeof ProtocoloRoute
   '/registro': typeof RegistroRoute
   '/scanner': typeof ScannerRoute
+  '/termos': typeof TermosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,9 +135,12 @@ export interface FileRouteTypes {
     | '/corpo'
     | '/dieta'
     | '/perfil'
+    | '/perguntar'
+    | '/privacidade'
     | '/protocolo'
     | '/registro'
     | '/scanner'
+    | '/termos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,9 +149,12 @@ export interface FileRouteTypes {
     | '/corpo'
     | '/dieta'
     | '/perfil'
+    | '/perguntar'
+    | '/privacidade'
     | '/protocolo'
     | '/registro'
     | '/scanner'
+    | '/termos'
   id:
     | '__root__'
     | '/'
@@ -130,9 +163,12 @@ export interface FileRouteTypes {
     | '/corpo'
     | '/dieta'
     | '/perfil'
+    | '/perguntar'
+    | '/privacidade'
     | '/protocolo'
     | '/registro'
     | '/scanner'
+    | '/termos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -142,9 +178,12 @@ export interface RootRouteChildren {
   CorpoRoute: typeof CorpoRoute
   DietaRoute: typeof DietaRoute
   PerfilRoute: typeof PerfilRoute
+  PerguntarRoute: typeof PerguntarRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
   ProtocoloRoute: typeof ProtocoloRoute
   RegistroRoute: typeof RegistroRoute
   ScannerRoute: typeof ScannerRoute
+  TermosRoute: typeof TermosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -191,6 +230,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/perguntar': {
+      id: '/perguntar'
+      path: '/perguntar'
+      fullPath: '/perguntar'
+      preLoaderRoute: typeof PerguntarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/protocolo': {
       id: '/protocolo'
       path: '/protocolo'
@@ -212,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScannerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -222,9 +282,12 @@ const rootRouteChildren: RootRouteChildren = {
   CorpoRoute: CorpoRoute,
   DietaRoute: DietaRoute,
   PerfilRoute: PerfilRoute,
+  PerguntarRoute: PerguntarRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
   ProtocoloRoute: ProtocoloRoute,
   RegistroRoute: RegistroRoute,
   ScannerRoute: ScannerRoute,
+  TermosRoute: TermosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

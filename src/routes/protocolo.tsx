@@ -69,7 +69,7 @@ function ProtocoloPage() {
   const toggleDay = useToggleProtocolDay(userId);
   const completeDay = useCompleteChallengeDay(userId);
 
-  const completed = protocol.data ?? [];
+  const completed = (protocol.data ?? []).map((row) => row.day_number);
   const concluidos = completed.length;
   const primeiroPendente = Array.from({ length: 30 }, (_, i) => i + 1).find(
     (day) => !completed.includes(day),
