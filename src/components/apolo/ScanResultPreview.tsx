@@ -94,7 +94,7 @@ export function ScanResultPreview({ data }: { data: ScanResultData }) {
         <div className="flex items-center gap-5">
           <ScoreRing score={data.score} />
           <div className="min-w-0">
-            <p className="eyebrow">Nota Apolo</p>
+            <p className="eyebrow">Nota Apollo</p>
             <h3 className="mt-1 text-[1.5rem] leading-tight">{data.verdict}</h3>
             <p className="mt-1 text-[15px] leading-snug text-muted-foreground">
               {data.verdictDetail}

@@ -72,7 +72,7 @@ export function ProfileDataSheet({
             onSubmit={(e) => {
               e.preventDefault();
               onSave({
-                display_name: nome.trim() || "Apolo",
+                display_name: nome.trim() || "Apollo",
                 step_goal: Number(passos) || 8000,
                 meal_goal: Number(refeicoes) || 4,
                 birth_date: nascimento || null,

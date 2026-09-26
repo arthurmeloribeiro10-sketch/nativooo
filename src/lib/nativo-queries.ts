@@ -740,7 +740,7 @@ export function useProtocol(userId: string | undefined) {
   });
 }
 
-/** Estado do Desafio Apolo a partir das linhas de protocol_progress. */
+/** Estado do Desafio Apollo a partir das linhas de protocol_progress. */
 export function challengeState(rows: ProtocolRow[], timeZone = browserTimeZone()) {
   const completedDays = rows.map((r) => r.day_number);
   const todayStr = today(timeZone);

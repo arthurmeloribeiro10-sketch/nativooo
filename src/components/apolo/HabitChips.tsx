@@ -23,7 +23,7 @@ export function HabitChips({ habits, busy, onToggle }: Props) {
             aria-pressed={h.active}
             className={`press min-h-12 rounded-full px-6 text-[16px] font-medium transition-colors disabled:opacity-70 ${
               h.active
-                ? "bg-primary text-primary-foreground"
+                ? "bg-chip-gold text-foreground"
                 : "border border-sand-deep bg-card text-foreground"
             }`}
           >

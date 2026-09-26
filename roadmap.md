@@ -1,4 +1,4 @@
-# APOLO upgrade roadmap
+# APOLLO upgrade roadmap
 
 - [x] Correct UV data, safety guidance, city fallback, and states
 - [x] Correct score semantics and separate daily/streak/protocol progress
@@ -18,6 +18,7 @@
 - [x] Coleção de cartas e resumo da árvore no Perfil
 - [x] Conclusão do dia do desafio com fallback quando a função `complete_challenge_day` ainda não existe no banco
 - [x] Redesign "Apolo — App Projeto1" (set/2026): paleta creme + índigo, nav flutuante de 4 abas + botão "Pergunte ao Apolo"
+- [x] Revisão "Apollofim — App" (26/set/2026): nome vira "Apollo", tipografia só sans (Inter Tight + Inter), céu de pôr do sol com sol amarelo, etiqueta amarela "Próxima missão", tiles coloridos, chips de hábito dourados, cartão de nível índigo com arco amarelo, barras de pilares com uma cor por pilar, subtítulo do chat "Como podemos começar hoje?"
 - [x] Início: sol que nasce com as missões, níveis do sol (Aurora → Solstício), próxima missão com Concluir/Depois, tiles UV/Passos/Sono, lista de missões, cartão do Desafio (dia marcado automaticamente ao fechar as missões)
 - [x] Diário: semana com pontos de registro, registrar refeição por texto/foto (IA)/voz, leitura "comida de verdade", linha do tempo do dia, hábitos em chips
 - [x] Pergunte ao Apolo: chat com persona própria, sugestões, histórico no aparelho

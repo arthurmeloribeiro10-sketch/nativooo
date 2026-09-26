@@ -10,13 +10,13 @@ import { useCompleteChallengeDay } from "@/lib/gamification/queries";
 export const Route = createFileRoute("/protocolo")({
   head: () => ({
     meta: [
-      { title: "Protocolo Apolo de 30 dias" },
+      { title: "Protocolo Apollo de 30 dias" },
       {
         name: "description",
         content:
           "A jornada de 30 dias de lifestyle natural: missões diárias, conteúdos e acompanhamento de consistência.",
       },
-      { property: "og:title", content: "Protocolo Apolo de 30 dias" },
+      { property: "og:title", content: "Protocolo Apollo de 30 dias" },
       {
         property: "og:description",
         content: "Comida real, sol, movimento, sono e presença em uma jornada guiada de 30 dias.",
@@ -80,7 +80,7 @@ function ProtocoloPage() {
   return (
     <AppShell>
       <PageTitle
-        title="Protocolo Apolo · 30 dias"
+        title="Protocolo Apollo · 30 dias"
         subtitle="Lifestyle natural em 30 dias — um guia simples, não um fiscal."
       />
 
@@ -95,7 +95,7 @@ function ProtocoloPage() {
             style={{ width: `${(concluidos / 30) * 100}%` }}
           />
         </div>
-        <p className="mt-5 font-editorial text-base italic leading-relaxed">
+        <p className="mt-5 text-base font-medium leading-relaxed">
           "Você não precisa de um dia perfeito para continuar."
         </p>
       </section>
@@ -175,7 +175,7 @@ function ProtocoloPage() {
           })}
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Ao concluir, você recebe o selo simbólico do Método Apolo.
+          Ao concluir, você recebe o selo simbólico do Método Apollo.
         </p>
       </section>
     </AppShell>

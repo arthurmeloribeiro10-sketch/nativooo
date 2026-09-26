@@ -17,9 +17,12 @@ import { useRitual } from "@/lib/rituals";
 export const Route = createFileRoute("/perguntar")({
   head: () => ({
     meta: [
-      { title: "Pergunte ao Apolo" },
-      { name: "description", content: "Nutrição e rotina, sem neura. Pergunte qualquer coisa." },
-      { property: "og:title", content: "Pergunte ao Apolo" },
+      { title: "Pergunte ao Apollo" },
+      {
+        name: "description",
+        content: "Como podemos começar hoje? Pergunte qualquer coisa sobre comida e rotina.",
+      },
+      { property: "og:title", content: "Pergunte ao Apollo" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -101,8 +104,8 @@ function PerguntarPage() {
             <ApoloMark className="size-7" />
           </span>
           <div className="min-w-0 flex-1">
-            <h1 className="text-[1.6rem] leading-tight">Pergunte ao Apolo</h1>
-            <p className="text-[15px] text-muted-foreground">Nutrição e rotina, sem neura</p>
+            <h1 className="text-[1.6rem] leading-tight">Pergunte ao Apollo</h1>
+            <p className="text-[15px] text-muted-foreground">Como podemos começar hoje?</p>
           </div>
           {messages.length > 0 ? (
             <button
@@ -122,7 +125,7 @@ function PerguntarPage() {
         <div className="flex-1 px-5 pb-40 pt-3">
           {!ready ? null : messages.length === 0 ? (
             <div className="rise surface mt-2 p-5">
-              <p className="font-editorial text-lg italic leading-snug text-foreground">
+              <p className="text-lg font-medium leading-snug text-foreground">
                 Oi. Pode perguntar sobre comida, sono, sol, movimento ou rotina.
               </p>
               <p className="mt-2 text-[15px] text-muted-foreground">
@@ -166,7 +169,7 @@ function PerguntarPage() {
               <li
                 className="flex justify-start"
                 aria-live="polite"
-                aria-label="O Apolo está escrevendo"
+                aria-label="O Apollo está escrevendo"
               >
                 <div className="flex items-center gap-1.5 rounded-[26px] rounded-bl-lg bg-card px-5 py-4">
                   {[0, 1, 2].map((i) => (
@@ -233,7 +236,7 @@ function PerguntarPage() {
             </button>
           </div>
           <p className="mx-auto mt-3 max-w-lg text-center text-[13px] text-muted-foreground">
-            O Apolo orienta. Não substitui um profissional de saúde.
+            O Apollo orienta. Não substitui um profissional de saúde.
           </p>
         </form>
       </div>

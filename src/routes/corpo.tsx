@@ -32,12 +32,13 @@ import { searchCities, uvLevel, useSunIndex, type Place } from "@/lib/sun";
 export const Route = createFileRoute("/corpo")({
   head: () => ({
     meta: [
-      { title: "Atividade ao ar livre, passos e sono — APOLO" },
+      { title: "Atividade ao ar livre, passos e sono — Apollo" },
       {
         name: "description",
-        content: "Consulte o índice UV por horário, registre passos e acompanhe seu sono no APOLO.",
+        content:
+          "Consulte o índice UV por horário, registre passos e acompanhe seu sono no Apollo.",
       },
-      { property: "og:title", content: "Atividade ao ar livre, passos e sono — APOLO" },
+      { property: "og:title", content: "Atividade ao ar livre, passos e sono — Apollo" },
       {
         property: "og:description",
         content: "Índice UV horário, movimento e recuperação com dados claros.",
@@ -135,7 +136,7 @@ function CorpoPage() {
                 : "Escolha uma cidade para ver uma previsão local"}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Sem localização, o APOLO não cria recomendações locais.
+              Sem localização, o Apollo não cria recomendações locais.
             </p>
             {locationState !== "loading" ? (
               <>
@@ -316,7 +317,7 @@ function CorpoPage() {
             </p>
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               O site não pode abrir o Apple Saúde diretamente. A sincronização automática exige o
-              aplicativo companheiro APOLO para iPhone, com sua autorização. O Apple Watch fornece
+              aplicativo companheiro Apollo para iPhone, com sua autorização. O Apple Watch fornece
               passos, sono e frequência cardíaca; glicemia e pressão numéricas só aparecem quando um
               medidor ou sensor compatível envia esses dados ao Apple Saúde.
             </p>

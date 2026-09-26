@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 /**
  * Lembretes — dois horários (abrir o dia e fechar o dia). A preferência
- * fica no aparelho, e a notificação dispara pelo navegador enquanto o Apolo
+ * fica no aparelho, e a notificação dispara pelo navegador enquanto o Apollo
  * estiver aberto (inclusive instalado como app na tela inicial).
  */
 
@@ -112,7 +112,7 @@ export function useReminderScheduler(userId: string | undefined) {
           /* segue sem marcador */
         }
         try {
-          new Notification("Apolo", { body: REMINDER_COPY[kind].body, icon: "/icon-192.png" });
+          new Notification("Apollo", { body: REMINDER_COPY[kind].body, icon: "/icon-192.png" });
         } catch {
           /* alguns navegadores só notificam via service worker */
         }

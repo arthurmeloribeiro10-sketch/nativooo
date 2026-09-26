@@ -23,7 +23,7 @@ const inputSchema = z.object({
     .optional(),
 });
 
-const PERSONA = `Você é o Apolo, um guia de nutrição e rotina: leve, direto e sem neura.
+const PERSONA = `Você é o Apollo, um guia de nutrição e rotina: leve, direto e sem neura.
 Fale em português do Brasil, com frases curtas e no máximo três parágrafos curtos.
 Seu foco: comida de verdade, sono, sol, movimento e presença (menos telas).
 Você não conta calorias, não prescreve dietas restritivas, não usa culpa e não faz diagnóstico.
@@ -49,7 +49,7 @@ export const askApolo = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => inputSchema.parse(input))
   .handler(async ({ data }): Promise<{ reply: string }> => {
     const apiKey = process.env["LOVABLE_API_KEY"];
-    if (!apiKey) throw new Error("O Apolo está sem conexão com a IA agora. Tente mais tarde.");
+    if (!apiKey) throw new Error("O Apollo está sem conexão com a IA agora. Tente mais tarde.");
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

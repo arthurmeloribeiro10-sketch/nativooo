@@ -37,7 +37,7 @@ export function RemindersSheet({ open, onOpenChange, userId }: Props) {
       setPermission(result);
       if (result === "unsupported") {
         toast.error(
-          "Este navegador não mostra notificações. Instale o Apolo na tela inicial para receber.",
+          "Este navegador não mostra notificações. Instale o Apollo na tela inicial para receber.",
         );
         return;
       }
@@ -58,7 +58,7 @@ export function RemindersSheet({ open, onOpenChange, userId }: Props) {
               Lembretes
             </DrawerTitle>
             <DrawerDescription>
-              Tocam enquanto o Apolo estiver aberto ou instalado na tela inicial.
+              Tocam enquanto o Apollo estiver aberto ou instalado na tela inicial.
             </DrawerDescription>
           </DrawerHeader>
 

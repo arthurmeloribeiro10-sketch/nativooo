@@ -34,12 +34,12 @@ import {
 export const Route = createFileRoute("/perfil")({
   head: () => ({
     meta: [
-      { title: "Perfil — Apolo" },
+      { title: "Perfil — Apollo" },
       {
         name: "description",
         content: "Seu nível, sua sequência, seus pilares da semana e suas preferências.",
       },
-      { property: "og:title", content: "Perfil — Apolo" },
+      { property: "og:title", content: "Perfil — Apollo" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -63,11 +63,11 @@ const MONTHS = [
 ];
 
 function sinceLabel(iso: string | undefined) {
-  if (!iso) return "No Apolo";
+  if (!iso) return "No Apollo";
   const date = new Date(iso);
   const month = MONTHS[date.getMonth()] ?? "";
   const sameYear = date.getFullYear() === new Date().getFullYear();
-  return `No Apolo desde ${month}${sameYear ? "" : ` de ${date.getFullYear()}`}`;
+  return `No Apollo desde ${month}${sameYear ? "" : ` de ${date.getFullYear()}`}`;
 }
 
 function PerfilPage() {
@@ -188,7 +188,7 @@ function PerfilPage() {
         style={{ "--stagger": "70ms" } as React.CSSProperties}
       >
         <LevelArc currentLevel={level.current.level} />
-        <div className="mt-5 flex items-baseline justify-between">
+        <div className="mt-5 flex items-baseline justify-between gap-3">
           <h2 className="text-[1.6rem]">
             Nível {level.current.level} · {level.current.name}
           </h2>
@@ -282,11 +282,11 @@ function PerfilPage() {
           <Sparkles className="size-5" strokeWidth={1.8} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[17px] font-semibold">Apolo Pro</span>
+          <span className="block text-[17px] font-semibold">Apollo Pro</span>
           <span className="block text-[14px] text-primary-foreground/80">
             {pro.trialActive
               ? `Teste grátis ativo · ${pro.daysLeft === 1 ? "1 dia restante" : `${pro.daysLeft} dias restantes`}`
-              : "Scanner ilimitado, Pergunte ao Apolo e mais. 7 dias grátis."}
+              : "Scanner ilimitado, Pergunte ao Apollo e mais. 7 dias grátis."}
           </span>
         </span>
         <ChevronRight className="size-5 shrink-0 text-primary-foreground/70" strokeWidth={1.8} />

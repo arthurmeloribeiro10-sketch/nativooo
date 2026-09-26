@@ -15,7 +15,9 @@ export function NextMissionCard({ mission, total, loading, busy, onComplete, onD
       className="surface rise mt-4 p-6"
       style={{ "--stagger": "70ms" } as React.CSSProperties}
     >
-      <p className="eyebrow">Próxima missão</p>
+      <span className="inline-block rounded-full bg-tile-yellow px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-gold-deep">
+        Próxima missão
+      </span>
       {loading ? (
         <div className="mt-3 space-y-2">
           <div className="h-7 w-3/4 rounded-full bg-muted" />
@@ -23,7 +25,7 @@ export function NextMissionCard({ mission, total, loading, busy, onComplete, onD
         </div>
       ) : mission ? (
         <>
-          <h2 className="mt-2 text-[1.6rem] leading-tight">{mission.title}</h2>
+          <h2 className="mt-3 text-[1.5rem] leading-tight">{mission.title}</h2>
           {mission.detail ? (
             <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
               {mission.detail}
@@ -50,14 +52,14 @@ export function NextMissionCard({ mission, total, loading, busy, onComplete, onD
         </>
       ) : total > 0 ? (
         <>
-          <h2 className="mt-2 text-[1.6rem] leading-tight">Tudo feito por hoje.</h2>
+          <h2 className="mt-3 text-[1.5rem] leading-tight">Tudo feito por hoje.</h2>
           <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
             Seu sol está alto. Amanhã tem missões novas esperando por você.
           </p>
         </>
       ) : (
         <>
-          <h2 className="mt-2 text-[1.6rem] leading-tight">Suas missões estão chegando.</h2>
+          <h2 className="mt-3 text-[1.5rem] leading-tight">Suas missões estão chegando.</h2>
           <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
             Assim que o dia carregar, a primeira ação aparece aqui.
           </p>

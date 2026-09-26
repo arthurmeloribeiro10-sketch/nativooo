@@ -106,7 +106,7 @@ export type ScanOutcome =
     }
   | { ok: false; error: ProductLookupError };
 
-/** barcode → cache APOLO → provider externo → normaliza → score → salva → mostra. */
+/** barcode → cache Apollo → provider externo → normaliza → score → salva → mostra. */
 export function useScanBarcode(userId: string | undefined) {
   const qc = useQueryClient();
   const rules = useIngredientRules();

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/termos")({
-  head: () => ({ meta: [{ title: "Termos — Apolo" }] }),
+  head: () => ({ meta: [{ title: "Termos — Apollo" }] }),
   component: TermosPage,
 });
 
@@ -19,16 +19,16 @@ function TermosPage() {
       <h1 className="mt-6 text-[2rem] leading-tight">Termos de uso</h1>
       <div className="mt-4 space-y-4 text-[16px] leading-relaxed text-foreground/85">
         <p>
-          O Apolo é um guia de rotina e alimentação. Ele orienta, mas não substitui médico,
+          O Apollo é um guia de rotina e alimentação. Ele orienta, mas não substitui médico,
           nutricionista ou outro profissional de saúde.
         </p>
         <p>
-          O teste grátis do Apolo Pro dura 7 dias e pode ser cancelado a qualquer momento. Depois
+          O teste grátis do Apollo Pro dura 7 dias e pode ser cancelado a qualquer momento. Depois
           disso, a assinatura anual é cobrada conforme o valor exibido no aplicativo.
         </p>
         <p>
-          Ao usar o Apolo, você concorda em registrar informações verdadeiras e em usar o aplicativo
-          apenas para fins pessoais.
+          Ao usar o Apollo, você concorda em registrar informações verdadeiras e em usar o
+          aplicativo apenas para fins pessoais.
         </p>
       </div>
     </div>

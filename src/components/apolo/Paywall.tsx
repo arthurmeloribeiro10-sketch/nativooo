@@ -14,7 +14,7 @@ const FEATURES: Feature[] = [
   },
   {
     icon: Sparkles,
-    title: "Pergunte ao Apolo",
+    title: "Pergunte ao Apollo",
     detail: "Dúvidas de comida e rotina, a qualquer hora.",
   },
   { icon: Calendar, title: "Desafio de 30 dias", detail: "Missões curtas que viram hábito." },

@@ -9,12 +9,12 @@ import { ScanResultPreview, type ScanResultData } from "@/components/apolo/ScanR
 export const Route = createFileRoute("/scanner")({
   head: () => ({
     meta: [
-      { title: "Scanner — Apolo" },
+      { title: "Scanner — Apollo" },
       {
         name: "description",
         content: "Aponte para o rótulo e veja o que tem de verdade no produto.",
       },
-      { property: "og:title", content: "Scanner — Apolo" },
+      { property: "og:title", content: "Scanner — Apollo" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -57,7 +57,7 @@ function ScannerPage() {
           >
             <ChevronLeft className="size-6" strokeWidth={2} />
           </button>
-          <h1 className="font-sans text-[17px] font-semibold">Resultado</h1>
+          <h1 className="text-[17px] font-semibold tracking-normal">Resultado</h1>
           <button
             type="button"
             onClick={() => toast("Salvar produtos chega junto com o scanner.")}
@@ -80,7 +80,7 @@ function ScannerPage() {
   return (
     <AppShell>
       <div className="rise">
-        <h1 className="text-[2.35rem] leading-[1.08]">Scanner</h1>
+        <h1 className="text-[clamp(1.75rem,7.8vw,2.1rem)] leading-[1.12]">Scanner</h1>
         <p className="mt-2 text-[17px] text-muted-foreground">
           Saiba o que tem de verdade em cada rótulo.
         </p>
@@ -96,7 +96,7 @@ function ScannerPage() {
         <h2 className="mt-5 text-[1.6rem] leading-tight">Em configuração</h2>
         <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-muted-foreground">
           A leitura de código de barras está sendo preparada. Em breve você aponta a câmera para o
-          rótulo e recebe a Nota Apolo na hora.
+          rótulo e recebe a Nota Apollo na hora.
         </p>
         <button
           type="button"

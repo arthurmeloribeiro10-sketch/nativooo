@@ -38,12 +38,12 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Apolo — Seu dia" },
+      { title: "Apollo — Seu dia" },
       {
         name: "description",
         content: "Suas missões, seu sol e seu desafio de 30 dias. Mais energia, sem neura.",
       },
-      { property: "og:title", content: "Apolo — Seu dia" },
+      { property: "og:title", content: "Apollo — Seu dia" },
       { property: "og:description", content: "Mais energia, sem neura." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -148,7 +148,7 @@ function Home() {
         haptic([20, 60, 20]);
         setBurst({
           title: "Dia completo ☀️",
-          subtitle: `Você fechou as ${list.length} missões de hoje e marcou o dia ${challenge.todayDay} do Desafio Apolo.`,
+          subtitle: `Você fechou as ${list.length} missões de hoje e marcou o dia ${challenge.todayDay} do Desafio Apollo.`,
         });
       },
       onError: () => {
@@ -231,7 +231,7 @@ function Home() {
               : "Escolher a intenção de hoje"
           }
         >
-          <h1 className="text-[2.35rem] leading-[1.08]">
+          <h1 className="text-[clamp(1.75rem,7.8vw,2.1rem)] leading-[1.12]">
             {ritual.intention
               ? `Hoje é dia de ${ritual.intention.toLowerCase()}.`
               : "Como você quer viver hoje?"}
@@ -266,18 +266,21 @@ function Home() {
       <div className="rise mt-4 flex gap-3" style={{ "--stagger": "140ms" } as React.CSSProperties}>
         <StatTile
           label="Índice UV"
+          variant="yellow"
           value={uvNow === null ? "—" : String(Math.round(uvNow))}
           detail={uv ? uv.label : place ? "Carregando" : "Ativar local"}
           tone={uv ? uvTone(uv.label) : "muted"}
         />
         <StatTile
           label="Passos"
+          variant="peach"
           value={stepsToday ? stepsToday.steps.toLocaleString("pt-BR") : "—"}
           detail={stepsToday ? `de ${stepGoal.toLocaleString("pt-BR")}` : "Registrar"}
-          tone={stepsToday && stepsToday.steps >= stepGoal ? "success" : "muted"}
+          tone={stepsToday ? (stepsToday.steps >= stepGoal ? "success" : "terracotta") : "muted"}
         />
         <StatTile
           label="Sono"
+          variant="blue"
           value={sleepLatest ? formatSleep(sleepLatest.hours) : "—"}
           detail={
             sleepLatest
@@ -288,7 +291,7 @@ function Home() {
                   : "Leve"
               : "Registrar"
           }
-          tone={sleepLatest ? (sleepLatest.quality >= 70 ? "primary" : "gold") : "muted"}
+          tone={sleepLatest ? "primary" : "muted"}
         />
       </div>
 

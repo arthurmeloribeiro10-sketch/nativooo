@@ -10,13 +10,13 @@ import { useAuth } from "@/lib/auth-context";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar no APOLO" },
+      { title: "Entrar no Apollo" },
       {
         name: "description",
         content:
-          "Crie sua conta no APOLO e comece a acompanhar de verdade suas missões, refeições, sol, passos e sono.",
+          "Crie sua conta no Apollo e comece a acompanhar de verdade suas missões, refeições, sol, passos e sono.",
       },
-      { property: "og:title", content: "Entrar no APOLO" },
+      { property: "og:title", content: "Entrar no Apollo" },
       {
         property: "og:description",
         content: "Sua conta guarda seu progresso, seu protocolo e sua evolução.",
@@ -87,8 +87,8 @@ function AuthPage() {
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-6 py-12">
       <div className="rise text-center">
         <ApoloMark className="mx-auto size-14 text-primary" />
-        <h1 className="mt-4 font-display text-[2.4rem] font-semibold italic leading-none text-primary">
-          Apolo
+        <h1 className="mt-4 font-display text-[2.4rem] font-medium leading-none tracking-[-0.02em] text-primary">
+          Apollo
         </h1>
         <p className="mt-3 text-[15px] text-muted-foreground">
           Mais energia, sem neura. Entre para guardar seu progresso.
@@ -165,7 +165,7 @@ function AuthPage() {
         </button>
       </div>
 
-      <p className="mt-6 text-center font-editorial text-[15px] italic text-muted-foreground">
+      <p className="mt-6 text-center text-[15px] text-muted-foreground">
         "Menos controle. Mais consciência."
       </p>
     </div>

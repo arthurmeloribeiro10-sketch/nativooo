@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 /**
- * Apolo Pro — enquanto não existe cobrança integrada, o teste grátis de
+ * Apollo Pro — enquanto não existe cobrança integrada, o teste grátis de
  * 7 dias fica registrado no aparelho (por usuário). A interface do paywall é
  * a única que escreve aqui; trocar por assinatura real é trocar este arquivo.
  */

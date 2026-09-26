@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-/** Conversa com o Apolo — fica no aparelho, por usuário, para não se perder ao navegar. */
+/** Conversa com o Apollo — fica no aparelho, por usuário, para não se perder ao navegar. */
 
 export type ChatMessage = { role: "user" | "assistant"; content: string; at: string };
 

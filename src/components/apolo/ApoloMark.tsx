@@ -1,5 +1,5 @@
 /**
- * Marca do Apolo — um sol de raios ondulados, desenhado em SVG para não
+ * Marca do Apollo — um sol de raios ondulados, desenhado em SVG para não
  * depender de asset externo. Usa `currentColor`, então herda a cor do texto.
  */
 
@@ -42,8 +42,8 @@ export function ApoloWordmark({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 text-primary ${className}`}>
       <ApoloMark className="size-7" />
-      <span className="font-display text-[1.65rem] font-semibold italic leading-none tracking-tight">
-        Apolo
+      <span className="font-display text-[1.7rem] font-medium leading-none tracking-[-0.02em]">
+        Apollo
       </span>
     </span>
   );

@@ -1,5 +1,5 @@
 /**
- * Níveis do sol — a evolução do usuário no Apolo é contada em missões
+ * Níveis do sol — a evolução do usuário no Apollo é contada em missões
  * concluídas (todas, desde o começo). Cada nível é uma fase do dia: o sol
  * nasce na Aurora e chega ao Solstício.
  */

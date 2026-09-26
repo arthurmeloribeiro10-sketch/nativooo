@@ -22,7 +22,7 @@ export function ChallengeCard({
   const toMilestone = nextMilestone ? nextMilestone - completedCount : 0;
 
   let note: string;
-  if (finished) note = "Você completou os 30 dias. O Método Apolo agora é seu.";
+  if (finished) note = "Você completou os 30 dias. O Método Apollo agora é seu.";
   else if (doneToday && toMilestone === 1)
     note = `Amanhã você chega ao marco do dia ${nextMilestone}.`;
   else if (doneToday)
@@ -36,10 +36,10 @@ export function ChallengeCard({
       to="/protocolo"
       className="surface-deep rise mt-6 block p-6"
       style={{ "--stagger": "280ms" } as React.CSSProperties}
-      aria-label={`Desafio Apolo, dia ${todayDay} de 30. ${note}`}
+      aria-label={`Desafio Apollo, dia ${todayDay} de 30. ${note}`}
     >
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[1.5rem] text-primary-foreground">Desafio Apolo</h2>
+        <h2 className="text-[1.5rem] text-primary-foreground">Desafio Apollo</h2>
         <span className="text-[15px] text-primary-foreground/85">
           Dia {Math.min(todayDay, 30)} de 30
         </span>

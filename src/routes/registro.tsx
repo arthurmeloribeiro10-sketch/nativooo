@@ -34,12 +34,12 @@ import {
 export const Route = createFileRoute("/registro")({
   head: () => ({
     meta: [
-      { title: "Diário — Apolo" },
+      { title: "Diário — Apollo" },
       {
         name: "description",
         content: "Registre refeições e hábitos em segundos. Sem contar caloria.",
       },
-      { property: "og:title", content: "Diário — Apolo" },
+      { property: "og:title", content: "Diário — Apollo" },
       { property: "og:description", content: "O que entrou no seu dia?" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -180,7 +180,9 @@ function RegistroPage() {
       />
 
       <div className="rise">
-        <h1 className="text-[2.35rem] leading-[1.08]">O que entrou no seu dia?</h1>
+        <h1 className="text-[clamp(1.75rem,7.8vw,2.1rem)] leading-[1.12]">
+          O que entrou no seu dia?
+        </h1>
         <p className="mt-2 text-[17px] text-muted-foreground">
           Registrar leva segundos. Sem contar caloria.
         </p>

@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * APOLO design system — "Sol e papel"
- * Papel creme, tinta índigo e um dourado solar de acento. Serifa (Fraunces)
- * para títulos e frases editoriais, Inter para interface.
+ * APOLLO design system — "Sol e papel"
+ * Papel creme, tinta índigo e um amarelo solar de acento. Tudo sem serifa:
+ * Inter Tight para títulos, Inter para interface.
  * Todas as cores em oklch, tonalidade e croma alinhados entre si.
  * Nunca usar cores literais nos componentes.
  */
@@ -21,9 +21,9 @@
   --radius-3xl: calc(var(--radius) + 20px);
   --radius-4xl: calc(var(--radius) + 28px);
 
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-display: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-editorial: "Fraunces", ui-serif, Georgia, serif;
+  --font-editorial: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -59,6 +59,15 @@
   --color-terracotta: var(--terracotta);
   --color-sun: var(--sun);
   --color-ink: var(--ink);
+  --color-terracotta-deep: var(--terracotta-deep);
+  --color-tile-yellow: var(--tile-yellow);
+  --color-tile-peach: var(--tile-peach);
+  --color-chip-gold: var(--chip-gold);
+  --color-pillar-food: var(--pillar-food);
+  --color-pillar-movement: var(--pillar-movement);
+  --color-pillar-sleep: var(--pillar-sleep);
+  --color-pillar-light: var(--pillar-light);
+  --color-pillar-presence: var(--pillar-presence);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -75,9 +84,10 @@
   --gradient-solar: linear-gradient(135deg, var(--gold) 0%, var(--terracotta) 100%);
   --gradient-sky: linear-gradient(
     180deg,
-    var(--sky-top) 0%,
-    var(--sky-mid) 55%,
-    var(--sky-bottom) 100%
+    var(--sky-night) 0%,
+    var(--sky-dusk) 42%,
+    var(--sky-rose) 68%,
+    var(--sky-peach) 100%
   );
 }
 
@@ -133,7 +143,22 @@
   --success: oklch(0.66 0.1 145);
   --success-foreground: oklch(1 0 0);
   --terracotta: oklch(0.68 0.12 40);
-  --sun: oklch(0.9 0.12 90);
+  --terracotta-deep: oklch(0.5 0.1 40);
+  /* Sol amarelo do cartão da Home e do arco de níveis */
+  --sun: oklch(0.88 0.12 92);
+
+  /* Tiles coloridos da Home */
+  --tile-yellow: oklch(0.945 0.06 95);
+  --tile-peach: oklch(0.93 0.035 45);
+  /* Chip de hábito marcado */
+  --chip-gold: oklch(0.86 0.11 92);
+
+  /* Um tom por pilar (barras do Perfil) */
+  --pillar-food: oklch(0.66 0.16 40);
+  --pillar-movement: oklch(0.55 0.12 265);
+  --pillar-sleep: oklch(0.62 0.13 290);
+  --pillar-light: oklch(0.84 0.13 92);
+  --pillar-presence: oklch(0.66 0.1 145);
 
   --chart-1: oklch(0.47 0.11 265);
   --chart-2: oklch(0.62 0.1 255);
@@ -141,11 +166,12 @@
   --chart-4: oklch(0.72 0.13 78);
   --chart-5: oklch(0.68 0.12 40);
 
-  /* Céu do cartão do sol */
-  --sky-top: oklch(0.9 0.035 262);
-  --sky-mid: oklch(0.945 0.02 275);
-  --sky-bottom: oklch(0.955 0.02 75);
-  --sky-glow: oklch(0.93 0.05 70);
+  /* Céu do cartão do sol — do índigo da noite ao pêssego do horizonte */
+  --sky-night: oklch(0.42 0.11 272);
+  --sky-dusk: oklch(0.6 0.09 320);
+  --sky-rose: oklch(0.74 0.09 25);
+  --sky-peach: oklch(0.86 0.1 60);
+  --sky-glow: oklch(0.9 0.13 80);
   --hill: oklch(0.975 0.008 85);
 }
 
@@ -171,9 +197,8 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    font-variation-settings: "opsz" 144;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 }
 

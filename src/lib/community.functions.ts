@@ -48,19 +48,30 @@ const uploadCommunityPhotoInput = z.object({
   base64: z.string().min(4).max(14_000_000),
 });
 
-function detectCommunityImage(bytes: Uint8Array): { extension: string; contentType: string } | null {
+function detectCommunityImage(
+  bytes: Uint8Array,
+): { extension: string; contentType: string } | null {
   if (
     bytes.length >= 12 &&
-    bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 &&
-    bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47 &&
+    bytes[4] === 0x0d &&
+    bytes[5] === 0x0a &&
+    bytes[6] === 0x1a &&
+    bytes[7] === 0x0a
   ) {
     return { extension: "png", contentType: "image/png" };
   }
 
   if (
     bytes.length >= 4 &&
-    bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff &&
-    bytes[bytes.length - 2] === 0xff && bytes[bytes.length - 1] === 0xd9
+    bytes[0] === 0xff &&
+    bytes[1] === 0xd8 &&
+    bytes[2] === 0xff &&
+    bytes[bytes.length - 2] === 0xff &&
+    bytes[bytes.length - 1] === 0xd9
   ) {
     return { extension: "jpg", contentType: "image/jpeg" };
   }
@@ -69,7 +80,8 @@ function detectCommunityImage(bytes: Uint8Array): { extension: string; contentTy
     String.fromCharCode(...bytes.slice(start, start + length));
   if (
     bytes.length >= 16 &&
-    ascii(0, 4) === "RIFF" && ascii(8, 4) === "WEBP" &&
+    ascii(0, 4) === "RIFF" &&
+    ascii(8, 4) === "WEBP" &&
     ["VP8 ", "VP8L", "VP8X"].includes(ascii(12, 4))
   ) {
     return { extension: "webp", contentType: "image/webp" };
@@ -125,18 +137,19 @@ export const getCommunityFeed = createServerFn({ method: "GET" })
     const postIds = rows.map((post) => post.id);
     const imagePaths = rows.flatMap((post) => (post.image_path ? [post.image_path] : []));
 
-    const [{ data: profiles }, { data: reactions }, { data: replies }, signedImages] = await Promise.all([
-      supabaseAdmin.from("profiles").select("id, display_name").in("id", userIds),
-      supabaseAdmin.from("post_reactions").select("post_id, user_id").in("post_id", postIds),
-      supabaseAdmin
-        .from("post_replies")
-        .select("id, post_id, user_id, body, created_at")
-        .in("post_id", postIds)
-        .order("created_at", { ascending: true }),
-      imagePaths.length
-        ? supabaseAdmin.storage.from("community-photos").createSignedUrls(imagePaths, 3600)
-        : Promise.resolve({ data: [] as { path: string | null; signedUrl: string }[] }),
-    ]);
+    const [{ data: profiles }, { data: reactions }, { data: replies }, signedImages] =
+      await Promise.all([
+        supabaseAdmin.from("profiles").select("id, display_name").in("id", userIds),
+        supabaseAdmin.from("post_reactions").select("post_id, user_id").in("post_id", postIds),
+        supabaseAdmin
+          .from("post_replies")
+          .select("id, post_id, user_id, body, created_at")
+          .in("post_id", postIds)
+          .order("created_at", { ascending: true }),
+        imagePaths.length
+          ? supabaseAdmin.storage.from("community-photos").createSignedUrls(imagePaths, 3600)
+          : Promise.resolve({ data: [] as { path: string | null; signedUrl: string }[] }),
+      ]);
 
     const replyUserIds = [...new Set((replies ?? []).map((reply) => reply.user_id))].filter(
       (id) => !userIds.includes(id),
@@ -145,7 +158,10 @@ export const getCommunityFeed = createServerFn({ method: "GET" })
       ? await supabaseAdmin.from("profiles").select("id, display_name").in("id", replyUserIds)
       : { data: [] };
     const names = new Map(
-      [...(profiles ?? []), ...(replyProfiles ?? [])].map((profile) => [profile.id, profile.display_name]),
+      [...(profiles ?? []), ...(replyProfiles ?? [])].map((profile) => [
+        profile.id,
+        profile.display_name,
+      ]),
     );
     const urls = new Map(
       (signedImages.data ?? []).map((image) => [image.path as string, image.signedUrl]),
@@ -157,7 +173,7 @@ export const getCommunityFeed = createServerFn({ method: "GET" })
       body: post.body,
       created_at: post.created_at,
       user_id: post.user_id,
-      author: names.get(post.user_id) ?? "Apolo",
+      author: names.get(post.user_id) ?? "Apollo",
       reactions: allReactions.filter((reaction) => reaction.post_id === post.id).length,
       reacted: allReactions.some(
         (reaction) => reaction.post_id === post.id && reaction.user_id === context.userId,
@@ -167,7 +183,7 @@ export const getCommunityFeed = createServerFn({ method: "GET" })
         .filter((reply) => reply.post_id === post.id)
         .map((reply) => ({
           ...reply,
-          author: names.get(reply.user_id) ?? "Apolo",
+          author: names.get(reply.user_id) ?? "Apollo",
         })),
     }));
   });
@@ -205,10 +221,7 @@ export const getCommunityRanking = createServerFn({ method: "GET" })
         missions_done: missionCounts.get(profile.id) ?? 0,
       }))
       .filter((profile) => profile.protocol_days > 0 || profile.missions_done > 0)
-      .sort(
-        (a, b) =>
-          b.protocol_days - a.protocol_days || b.missions_done - a.missions_done,
-      )
+      .sort((a, b) => b.protocol_days - a.protocol_days || b.missions_done - a.missions_done)
       .slice(0, 20);
   });
 

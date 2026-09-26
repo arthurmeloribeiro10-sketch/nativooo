@@ -89,7 +89,7 @@ function BottomNav() {
         </div>
         <Link
           to="/perguntar"
-          aria-label="Pergunte ao Apolo"
+          aria-label="Pergunte ao Apollo"
           className="press flex size-14 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-nav transition-transform hover:-translate-y-0.5"
         >
           <Sparkles className="size-6" strokeWidth={1.8} />

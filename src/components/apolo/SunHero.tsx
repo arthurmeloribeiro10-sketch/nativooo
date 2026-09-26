@@ -29,10 +29,10 @@ export function SunHero({ levelLabel, completed, total, caption, loading = false
       aria-label={`${levelLabel}. ${completed} de ${total} missões concluídas.`}
     >
       <div className="flex items-center justify-between gap-2 p-4">
-        <span className="whitespace-nowrap rounded-full bg-card/85 px-3.5 py-1.5 text-[13px] font-semibold text-foreground">
+        <span className="whitespace-nowrap rounded-full bg-card/80 px-3.5 py-1.5 text-[13px] font-semibold text-foreground backdrop-blur-sm">
           {levelLabel}
         </span>
-        <span className="whitespace-nowrap rounded-full bg-card/85 px-3.5 py-1.5 text-[13px] font-semibold text-foreground">
+        <span className="whitespace-nowrap rounded-full bg-card/80 px-3.5 py-1.5 text-[13px] font-semibold text-foreground backdrop-blur-sm">
           {loading ? "…" : `${completed} de ${total} ${total === 1 ? "missão" : "missões"}`}
         </span>
       </div>
@@ -40,7 +40,8 @@ export function SunHero({ levelLabel, completed, total, caption, loading = false
       <svg viewBox="0 0 320 212" className="-mt-3 block h-auto w-full" aria-hidden>
         <defs>
           <radialGradient id="apolo-sun-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="var(--sky-glow)" stopOpacity="0.95" />
+            <stop offset="0%" stopColor="var(--sky-glow)" stopOpacity="0.85" />
+            <stop offset="55%" stopColor="var(--sky-glow)" stopOpacity="0.25" />
             <stop offset="100%" stopColor="var(--sky-glow)" stopOpacity="0" />
           </radialGradient>
           <clipPath id="apolo-sky-clip">
@@ -59,8 +60,8 @@ export function SunHero({ levelLabel, completed, total, caption, loading = false
           <g className="sun-rise" style={{ transform: `translate(160px, ${sunY}px)` }}>
             <g className="sun-breathe">
               <g transform="scale(1.7)">
-                <path d={SUNBURST_PATH} fill="var(--primary)" transform="translate(-50 -50)" />
-                <circle r="21" fill="var(--primary)" />
+                <path d={SUNBURST_PATH} fill="var(--sun)" transform="translate(-50 -50)" />
+                <circle r="21" fill="var(--sun)" />
               </g>
             </g>
           </g>
@@ -69,7 +70,7 @@ export function SunHero({ levelLabel, completed, total, caption, loading = false
       </svg>
 
       <div className="-mt-px" style={{ background: "var(--hill)" }}>
-        <p className="text-center font-editorial text-[1.35rem] italic text-foreground">
+        <p className="text-center text-[1.3rem] font-medium tracking-[-0.01em] text-foreground">
           {caption}
         </p>
 

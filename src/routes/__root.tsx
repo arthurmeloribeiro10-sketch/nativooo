@@ -80,13 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Apolo — Mais energia, sem neura" },
+      { title: "Apollo — Mais energia, sem neura" },
       {
         name: "description",
         content:
           "Plataforma de lifestyle que transforma o método de creators em hábitos diários, protocolos e comunidade.",
       },
-      { property: "og:title", content: "Apolo — Mais energia, sem neura" },
+      { property: "og:title", content: "Apollo — Mais energia, sem neura" },
       {
         property: "og:description",
         content: "Menos controle ansioso. Mais vida bem vivida.",
@@ -104,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600;1,9..144,700&family=Inter:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap",
       },
       { rel: "icon", href: "/favicon.png?v=2", type: "image/png", sizes: "64x64" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=2", sizes: "180x180" },
